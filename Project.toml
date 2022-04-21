@@ -1,0 +1,7 @@
+name = "ExcitationOperators"
+uuid = "44103491-c3cf-4716-b520-ce6e4805195a"
+authors = ["Marcus Lexander"]
+version = "0.1.0"
+
+[deps]
+DataStructures = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
