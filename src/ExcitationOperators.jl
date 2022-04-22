@@ -336,4 +336,6 @@ function comm(a::OperatorSum{A}, b) where {A<:Number}
     sum(n * comm(o, b) for (o, n) in a.s)
 end
 
+# Basic commutator arithmetic works. Here we start expectation values.
+
 end # module
