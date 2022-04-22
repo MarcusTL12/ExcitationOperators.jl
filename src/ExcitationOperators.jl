@@ -70,7 +70,7 @@ function Base.:*(a::KroeneckerDelta, b::KroeneckerDelta)
 end
 
 function Base.:*(a::OperatorProduct, b::KroeneckerDelta)
-    OperatorProduct(union(a.deltas, b), a.operators)
+    OperatorProduct(union(a.deltas, [b]), a.operators)
 end
 
 Base.:*(a::KroeneckerDelta, b::OperatorProduct) = b * a
@@ -209,6 +209,9 @@ function Base.:+(a::A, b::B) where {A<:OpUnion,B<:Number}
     b + a
 end
 
+Base.:*(::Nothing, b::B) where {B<:OpUnion} = b
+Base.:*(a::A, ::Nothing) where {A<:OpUnion} = a
+
 function Base.:-(a::A, b::B) where {A<:Number,B<:OpUnion}
     OperatorSum(Pair{OpUnion,A}[nothing=>a, b=>-one(A)])
 end
@@ -258,7 +261,6 @@ end
 function Base.:-(a::A, b::OperatorSum{B}) where {A<:Number,B<:Number}
     a + (-b)
 end
-
 function Base.:-(a::OperatorSum{A}, b::B) where {A<:Number,B<:Number}
     a + (-b)
 end
@@ -266,7 +268,6 @@ end
 function Base.:*(a::A, b::OperatorSum{B}) where {A<:Number,B<:Number}
     OperatorSum(Pair{OpUnion,promote_type(A, B)}[o => n * a for (o, n) in b.s])
 end
-
 function Base.:*(a::OperatorSum{A}, b::B) where {A<:Number,B<:Number}
     b * a
 end
@@ -277,8 +278,62 @@ function Base.adjoint(a::OperatorSum{T}) where {T<:Number}
     OperatorSum(Pair{OpUnion,T}[o' => n' for (o, n) in a.s])
 end
 
+function Base.:*(
+    a::OperatorSum{A}, b::OperatorSum{B}
+) where {A<:Number,B<:Number}
+    OperatorSum(
+        Pair{OpUnion,promote_type(A, B)}[
+            o1 * o2 => n1 * n2
+            for (o1, n1) in a.s, (o2, n2) in b.s
+        ][:]
+    )
+end
+
+function Base.:*(a::OperatorSum{A}, b::B) where {A<:Number,B<:OpUnion}
+    OperatorSum(Pair{OpUnion,A}[o * b => n for (o, n) in a.s])
+end
+function Base.:*(a::A, b::OperatorSum{B}) where {A<:OpUnion,B<:Number}
+    OperatorSum(Pair{OpUnion,B}[a * o => n for (o, n) in b.s])
+end
+
+comm(a, b::T) where {T<:Number} = 0
+comm(a::T, b) where {T<:Number} = 0
+
 function comm(a::ExcitationOperator, b::ExcitationOperator)
     δ(a.q, b.p) * E(a.p, b.q) - δ(a.p, b.q) * E(b.p, a.q)
+end
+
+Base.one(::Type{ExcitationOperator}) = 1
+Base.one(::Type{KroeneckerDelta}) = 1
+
+function comm(a::ExcitationOperator, b::OperatorProduct)
+    prod(b.deltas) * sum(
+        prod(b.operators[1:i-1]) *
+        comm(a, b.operators[i]) *
+        prod(b.operators[i+1:end])
+        for i in 1:length(b.operators)
+    )
+end
+
+function comm(
+    a::OperatorProduct, b::B
+) where {B<:Union{ExcitationOperator,OperatorProduct}}
+    prod(a.deltas) * sum(
+        prod(a.operators[1:i-1]) *
+        comm(a.operators[i], b) *
+        prod(a.operators[i+1:end])
+        for i in 1:length(a.operators)
+    )
+end
+
+function comm(
+    a::A, b::OperatorSum{B}
+) where {A<:Union{ExcitationOperator,OperatorProduct},B<:Number}
+    sum(n * comm(a, o) for (o, n) in b.s)
+end
+
+function comm(a::OperatorSum{A}, b) where {A<:Number}
+    sum(n * comm(o, b) for (o, n) in a.s)
 end
 
 end # module

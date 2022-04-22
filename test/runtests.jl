@@ -4,10 +4,16 @@ using ExcitationOperators
 
 println("INDICES:")
 
+p = ind(gen, "p")
+q = ind(gen, "q")
 i = ind(occ, "i")
 j = ind(occ, "j")
+k = ind(occ, "k")
+l = ind(occ, "l")
 a = ind(vir, "a")
-p = ind(gen, "p")
+b = ind(vir, "b")
+c = ind(vir, "c")
+d = ind(vir, "d")
 
 @show i, j, a, p
 @show i < a
@@ -58,7 +64,11 @@ dd2 = d2 * E(i, j)
 
 @show E(i, j) * 0
 
+@show E(p, q) * 3
+
 println("\nSUMS:")
+
+@show E(i, j) + 0
 
 dd3 = dd - dd2
 
@@ -73,14 +83,28 @@ dd5 = δ(p, a) - E(j, i)
 dd6 = nothing + dd5 + 3dd4 + nothing - 3E(a, p)
 
 @show dd6
-@show -dd6' + 2//3
+@show -dd6' + 2 // 3
+
+@show (3 + δ(i, j) * E(a, b) - 2 // 3 * E(p, q)) * (3 * δ(p, i) - E(q, j))
 
 println("\nCOMMUTATORS:")
-
-q = ind(gen, "q")
-b = ind(vir, "b")
 
 @show comm(E(p, q), E(a, i))
 @show comm(E(i, a), E(b, j))
 @show comm(E(i, a), E(j, b))
 @show comm(E(i, a), E(a, j))
+
+println()
+
+@show comm(E(i, a), E(p, q) * E(b, j))
+@show comm(E(i, a) * E(p, q), E(b, j))
+@show comm(E(i, a) * E(p, q), E(a, i) * E(b, j))
+
+println()
+
+@show comm(E(i, a), comm(E(p, q), E(b, j)))
+@show comm(comm(E(i, a), E(p, q)), E(b, j))
+
+println()
+
+@show comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l)))
