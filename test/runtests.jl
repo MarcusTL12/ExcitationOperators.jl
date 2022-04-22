@@ -6,6 +6,8 @@ println("INDICES:")
 
 p = ind(gen, "p")
 q = ind(gen, "q")
+r = ind(gen, "r")
+s = ind(gen, "s")
 i = ind(occ, "i")
 j = ind(occ, "j")
 k = ind(occ, "k")
