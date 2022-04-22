@@ -37,14 +37,20 @@ end
 struct KroeneckerDelta
     p::MOIndex
     q::MOIndex
+    function KroeneckerDelta(p::MOIndex, q::MOIndex)
+        if p == q
+            return 1
+        end
+
+        if p > q
+            p, q = q, p
+        end
+
+        Int(p.o) * Int(q.o) == 2 ? 0 : new(p, q)
+    end
 end
 
-function δ(p::MOIndex, q::MOIndex)
-    if p > q
-        p, q = q, p
-    end
-    KroeneckerDelta(p, q)
-end
+δ(p::MOIndex, q::MOIndex) = KroeneckerDelta(p, q)
 
 function Base.show(io::IO, δ::KroeneckerDelta)
     print(io, "δ_", δ.p.n, δ.q.n)
@@ -156,13 +162,15 @@ struct OperatorSum{T<:Number}
         for (o, n) in s
             lookup[o] = get(lookup, o, zero(T)) + n
         end
-        new{T}(Pair{OpUnion,T}[o => n for (o, n) in lookup if !iszero(n)])
+        s2 = Pair{OpUnion,T}[o => n for (o, n) in lookup if !iszero(n)]
+        isempty(s2) ? zero(T) : new{T}(s2)
     end
 end
 
 function Base.show(io::IO, s::OperatorSum)
     if !isone(abs(s.s[1].second))
-        print(io, s.s[1].second, isnothing(s.s[1].first) ? "" : ' ')
+        print(io,
+            s.s[1].second, ' ', isnothing(s.s[1].first) ? '\b' : s.s[1].first)
     else
         if isone(-s.s[1].second)
             print(io, '-')
@@ -178,24 +186,39 @@ function Base.show(io::IO, s::OperatorSum)
     end
 end
 
+function Base.:-(a::A) where {A<:OpUnion}
+    OperatorSum(Pair{OpUnion,Int}[a=>-1])
+end
+
 function Base.:*(n::T, p::OP) where {T<:Number,OP<:OpUnion}
     OperatorSum(Pair{OpUnion,T}[p=>n])
 end
-
 Base.:*(p::OP, n::T) where {T<:Number,OP<:OpUnion} = n * p
 
 function Base.:+(a::A, b::B) where {A<:OpUnion,B<:OpUnion}
     OperatorSum(Pair{OpUnion,Int}[a=>1, b=>1])
 end
-
 function Base.:-(a::A, b::B) where {A<:OpUnion,B<:OpUnion}
     OperatorSum(Pair{OpUnion,Int}[a=>1, b=>-1])
+end
+
+function Base.:+(a::A, b::B) where {A<:Number,B<:OpUnion}
+    OperatorSum(Pair{OpUnion,A}[nothing=>a, b=>one(A)])
+end
+function Base.:+(a::A, b::B) where {A<:OpUnion,B<:Number}
+    b + a
+end
+
+function Base.:-(a::A, b::B) where {A<:Number,B<:OpUnion}
+    OperatorSum(Pair{OpUnion,A}[nothing=>a, b=>-one(A)])
+end
+function Base.:-(a::A, b::B) where {A<:OpUnion,B<:Number}
+    b + (-a)
 end
 
 function Base.:+(a::OperatorSum{T}, b::OP) where {T<:Number,OP<:OpUnion}
     OperatorSum(Pair{OpUnion,Int}[a.s; b => 1])
 end
-
 function Base.:+(a::OP, b::OperatorSum{T}) where {T<:Number,OP<:OpUnion}
     OperatorSum(Pair{OpUnion,promote_type(Int, T)}[a => 1; b.s])
 end
@@ -254,8 +277,8 @@ function Base.adjoint(a::OperatorSum{T}) where {T<:Number}
     OperatorSum(Pair{OpUnion,T}[o' => n' for (o, n) in a.s])
 end
 
-# function comm(a::ExcitationOperator, b::ExcitationOperator)
-#     d(a.q, b.q) * E(a.p, b.q) - d(a.p, b.q) * E(b.p, a.q)
-# end
+function comm(a::ExcitationOperator, b::ExcitationOperator)
+    δ(a.q, b.p) * E(a.p, b.q) - δ(a.p, b.q) * E(b.p, a.q)
+end
 
 end # module
