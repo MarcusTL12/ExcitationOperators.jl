@@ -1,12 +1,12 @@
 module ExcitationOperators
 
-using DataStructures: SortedSet
+using DataStructures: SortedSet, SortedDict
 
 export Occupation, MOIndex, ExcitationOperator, KroeneckerDelta, occ, vir, gen
 
 export ind, E, δ, comm
 
-@enum Occupation gen occ vir
+@enum Occupation gen vir occ
 
 struct MOIndex
     o::Occupation
@@ -30,6 +30,10 @@ end
 
 Base.adjoint(e::ExcitationOperator) = E(e.q, e.p)
 
+function Base.isless(a::ExcitationOperator, b::ExcitationOperator)
+    (a.p, a.q) < (b.p, b.q)
+end
+
 struct KroeneckerDelta
     p::MOIndex
     q::MOIndex
@@ -47,6 +51,8 @@ function Base.show(io::IO, δ::KroeneckerDelta)
 end
 
 Base.isless(a::KroeneckerDelta, b::KroeneckerDelta) = (a.p, a.q) < (b.p, b.q)
+
+Base.adjoint(d::KroeneckerDelta) = d
 
 struct OperatorProduct
     deltas::SortedSet{KroeneckerDelta}
@@ -107,63 +113,113 @@ function Base.show(io::IO, p::OperatorProduct)
     end
 end
 
+function Base.isless(a::OperatorProduct, b::OperatorProduct)
+    (a.operators, a.deltas) < (b.operators, b.deltas)
+end
+
+function Base.isless(a::ExcitationOperator, b::OperatorProduct)
+    ([a], KroeneckerDelta[]) < (b.operators, b.deltas)
+end
+function Base.isless(a::OperatorProduct, b::ExcitationOperator)
+    (a.operators, a.deltas) < ([b], KroeneckerDelta[])
+end
+
+function Base.isless(a::KroeneckerDelta, b::OperatorProduct)
+    (ExcitationOperator[], [a]) < (b.operators, b.deltas)
+end
+function Base.isless(a::OperatorProduct, b::KroeneckerDelta)
+    (a.operators, a.deltas) < (ExcitationOperator[], [b])
+end
+
+Base.isless(::KroeneckerDelta, ::ExcitationOperator) = true
+Base.isless(::ExcitationOperator, ::KroeneckerDelta) = false
+
+Base.isless(::Nothing, ::KroeneckerDelta) = true
+Base.isless(::KroeneckerDelta, ::Nothing) = false
+
+Base.isless(::Nothing, ::OperatorProduct) = true
+Base.isless(::OperatorProduct, ::Nothing) = false
+
+Base.isless(::Nothing, ::ExcitationOperator) = true
+Base.isless(::ExcitationOperator, ::Nothing) = false
+
+Base.isless(::Nothing, ::Nothing) = false
+
 const OpUnion =
     Union{Nothing,KroeneckerDelta,ExcitationOperator,OperatorProduct}
 
 struct OperatorSum{T<:Number}
-    s::Vector{Pair{T,OpUnion}}
+    s::Vector{Pair{OpUnion,T}}
+
+    function OperatorSum(s::Vector{Pair{OpUnion,T}}) where {T<:Number}
+        lookup = SortedDict{OpUnion,T}()
+        for (o, n) in s
+            lookup[o] = get(lookup, o, zero(T)) + n
+        end
+        new{T}(Pair{OpUnion,T}[o => n for (o, n) in lookup if !iszero(n)])
+    end
 end
 
 function Base.show(io::IO, s::OperatorSum)
-    if !isone(abs(s.s[1].first))
-        print(io, s.s[1].first, ' ')
-    elseif isone(-s.s[1].first)
-        print(io, '-')
-    end
-    print(io, isnothing(s.s[1].second) ? '\b' : s.s[1].second)
-    for o in @view s.s[2:end]
-        print(io, ' ', o.first < 0 ? '-' : '+', ' ')
-        if !isone(abs(o.first))
-            print(io, abs(o.first), ' ')
+    if !isone(abs(s.s[1].second))
+        print(io, s.s[1].second, isnothing(s.s[1].first) ? "" : ' ')
+    else
+        if isone(-s.s[1].second)
+            print(io, '-')
         end
-        print(io, isnothing(o.second) ? '\b' : o.second)
+        print(io, isnothing(s.s[1].first) ? 1 : s.s[1].first)
+    end
+    for o in @view s.s[2:end]
+        print(io, ' ', o.second < 0 ? '-' : '+', ' ')
+        if !isone(abs(o.second))
+            print(io, abs(o.second), ' ')
+        end
+        print(io, isnothing(o.first) ? 1 : o.first)
     end
 end
 
 function Base.:*(n::T, p::OP) where {T<:Number,OP<:OpUnion}
-    OperatorSum(Pair{T,OpUnion}[n=>p])
+    OperatorSum(Pair{OpUnion,T}[p=>n])
 end
 
 Base.:*(p::OP, n::T) where {T<:Number,OP<:OpUnion} = n * p
 
 function Base.:+(a::A, b::B) where {A<:OpUnion,B<:OpUnion}
-    OperatorSum(Pair{Int,OpUnion}[1=>a, 1=>b])
+    OperatorSum(Pair{OpUnion,Int}[a=>1, b=>1])
 end
 
 function Base.:-(a::A, b::B) where {A<:OpUnion,B<:OpUnion}
-    OperatorSum(Pair{Int,OpUnion}[1=>a, -1=>b])
+    OperatorSum(Pair{OpUnion,Int}[a=>1, b=>-1])
 end
 
 function Base.:+(a::OperatorSum{T}, b::OP) where {T<:Number,OP<:OpUnion}
-    OperatorSum(Pair{Int,OpUnion}[a.s; 1 => b])
+    OperatorSum(Pair{OpUnion,Int}[a.s; b => 1])
 end
 
 function Base.:+(a::OP, b::OperatorSum{T}) where {T<:Number,OP<:OpUnion}
-    OperatorSum(Pair{promote_type(Int, T),OpUnion}[1 => a; b.s])
+    OperatorSum(Pair{OpUnion,promote_type(Int, T)}[a => 1; b.s])
 end
 
 function Base.:+(
     a::OperatorSum{A}, b::OperatorSum{B}
 ) where {A<:Number,B<:Number}
-    OperatorSum(Pair{promote_type(A, B),OpUnion}[a.s; b.s])
+    OperatorSum(Pair{OpUnion,promote_type(A, B)}[a.s; b.s])
+end
+
+function Base.:+(a::A, b::OperatorSum{B}) where {A<:Number,B<:Number}
+    OperatorSum(Pair{OpUnion,promote_type(A, B)}[nothing => a; b.s])
+end
+
+function Base.:+(a::OperatorSum{A}, b::B) where {A<:Number,B<:Number}
+    OperatorSum(Pair{OpUnion,promote_type(A, B)}[a.s; nothing => b])
 end
 
 function Base.:-(a::OperatorSum{T}) where {T<:Number}
-    OperatorSum(Pair{T,OpUnion}[-n => o for (n, o) in a.s])
+    OperatorSum(Pair{OpUnion,T}[o => -n for (o, n) in a.s])
 end
 
 function Base.:-(a::OperatorSum{T}, b::OP) where {T<:Number,OP<:OpUnion}
-    OperatorSum(Pair{promote_type(Int, T),OpUnion}[a.s; -1 => b])
+    OperatorSum(Pair{OpUnion,promote_type(Int, T)}[a.s; b => -1])
 end
 
 function Base.:-(a::OP, b::OperatorSum{T}) where {T<:Number,OP<:OpUnion}
@@ -176,12 +232,26 @@ function Base.:-(
     a + (-b)
 end
 
+function Base.:-(a::A, b::OperatorSum{B}) where {A<:Number,B<:Number}
+    a + (-b)
+end
+
+function Base.:-(a::OperatorSum{A}, b::B) where {A<:Number,B<:Number}
+    a + (-b)
+end
+
 function Base.:*(a::A, b::OperatorSum{B}) where {A<:Number,B<:Number}
-    OperatorSum(Pair{promote_type(A, B),OpUnion}[n * a => o for (n, o) in b.s])
+    OperatorSum(Pair{OpUnion,promote_type(A, B)}[o => n * a for (o, n) in b.s])
 end
 
 function Base.:*(a::OperatorSum{A}, b::B) where {A<:Number,B<:Number}
     b * a
+end
+
+Base.adjoint(::Nothing) = nothing
+
+function Base.adjoint(a::OperatorSum{T}) where {T<:Number}
+    OperatorSum(Pair{OpUnion,T}[o' => n' for (o, n) in a.s])
 end
 
 # function comm(a::ExcitationOperator, b::ExcitationOperator)

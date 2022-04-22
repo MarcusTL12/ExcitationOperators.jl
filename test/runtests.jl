@@ -58,7 +58,7 @@ dd4 = dd3 + E(a, p)
 
 dd5 = δ(p, a) - E(j, i)
 
-dd6 = dd5 + 3dd4
+dd6 = nothing + dd5 + 3dd4 + nothing - 3E(a, p)
 
 @show dd6
-@show -dd6
+@show -dd6' + 2//3
