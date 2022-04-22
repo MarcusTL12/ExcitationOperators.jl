@@ -15,8 +15,9 @@ p = ind(gen, "p")
 @show i > j
 
 Eai = E(a, i)
+Epj = E(p, j)
 
-@show Eai
+@show Eai, Epj
 
 d1 = δ(p, i)
 d2 = δ(i, p)
@@ -30,3 +31,34 @@ d3 = δ(a, i)
 dd = d1 * d3
 
 @show dd
+
+dd *= Epj
+
+@show dd
+
+dd *= Eai
+
+@show dd
+
+@show dd'
+
+@show 3dd
+
+dd2 = d2 * E(i, j)
+
+@show dd2
+
+dd3 = dd - dd2
+
+@show dd3
+
+dd4 = dd3 + E(a, p)
+
+@show dd4
+
+dd5 = δ(p, a) - E(j, i)
+
+dd6 = dd5 + 3dd4
+
+@show dd6
+@show -dd6
