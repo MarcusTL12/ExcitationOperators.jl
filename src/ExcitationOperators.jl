@@ -2,9 +2,7 @@ module ExcitationOperators
 
 using DataStructures: SortedSet, SortedDict
 
-export Occupation, MOIndex, ExcitationOperator, KroeneckerDelta, occ, vir, gen
-
-export ind, E, δ, comm
+export occ, vir, gen, ind, E, δ, comm, exval
 
 @enum Occupation gen vir occ
 
@@ -63,6 +61,10 @@ Base.adjoint(d::KroeneckerDelta) = d
 struct OperatorProduct
     deltas::SortedSet{KroeneckerDelta}
     operators::Vector{ExcitationOperator}
+end
+
+function Base.:(==)(a::OperatorProduct, b::OperatorProduct)
+    (collect(a.deltas), a.operators) == (collect(b.deltas), b.operators)
 end
 
 function Base.:*(a::KroeneckerDelta, b::KroeneckerDelta)
@@ -337,5 +339,94 @@ function comm(a::OperatorSum{A}, b) where {A<:Number}
 end
 
 # Basic commutator arithmetic works. Here we start expectation values.
+
+struct ExpectationValue
+    p::OperatorProduct
+end
+
+function Base.:(==)(a::ExpectationValue, b::ExpectationValue)
+    a.p == b.p
+end
+
+function Base.show(io::IO, ev::ExpectationValue)
+    printed = false
+
+    for d in ev.p.deltas
+        printed = true
+        print(io, d, ' ')
+    end
+
+    print(io, '⟨')
+
+    for e in ev.p.operators
+        print(io, e, ' ')
+    end
+
+    print(io, '\b')
+
+    print(io, '⟩')
+end
+
+exval(n::T) where {T<:Number} = n
+exval(::Nothing) = nothing
+exval(d::KroeneckerDelta) = d
+
+function exval(e::ExcitationOperator)
+    if e.p.o == vir || e.q.o == vir
+        0
+    elseif e.p.o == occ || e.q.o == occ
+        2δ(e.p, e.q)
+    else
+        ExpectationValue(OperatorProduct(SortedSet(), [e]))
+    end
+end
+
+function exval(p::OperatorProduct)
+    if isempty(p.operators)
+        p
+    elseif p.operators[1].p.o == vir || p.operators[end].q.o == vir
+        0
+    elseif p.operators[1].q.o == vir
+        exval(comm(
+            p.operators[1], OperatorProduct(p.deltas, p.operators[2:end])
+        ))
+    elseif p.operators[end].p.o == vir
+        exval(comm(
+            OperatorProduct(p.deltas, p.operators[1:end-1]), p.operators[end]
+        ))
+    else
+        ExpectationValue(p)
+    end
+end
+
+Base.isless(a::ExpectationValue, b::ExpectationValue) = a.p < b.p
+
+struct ExpectationProduct
+    vals::Vector{ExpectationValue}
+    function ExpectationProduct(v::Vector{ExpectationValue})
+        v = sort(v)
+        for i = 2:length(v)
+            union!(v[1].p.deltas, v[i].p.deltas)
+            empty!(v[i].p.deltas)
+        end
+        new(v)
+    end
+end
+
+function Base.show(io::IO, p::ExpectationProduct)
+    for v in p.vals
+        print(io, v)
+    end
+end
+
+function Base.:*(a::ExpectationValue, b::ExpectationValue)
+    ExpectationProduct([a, b])
+end
+
+const ExUnion = 0
+
+struct ExpectationSum{T<:Number}
+
+end
 
 end # module

@@ -110,3 +110,19 @@ println()
 println()
 
 @show comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l)))
+
+println("\nEXPECTATION VALUES:")
+@show exval(E(p, q))
+@show exval(E(a, q))
+@show exval(E(p, i))
+
+println()
+
+ex1 = exval(δ(a, b) * E(p, q) * E(r, s))
+
+@show ex1
+
+@show ex1 * exval(E(p, q))
+
+@show exval(E(p, q)) * exval(E(p, q))
+@show exval(E(r, s)) * exval(E(p, q))
