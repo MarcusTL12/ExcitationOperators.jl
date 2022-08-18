@@ -58,6 +58,8 @@ Base.isless(a::KroeneckerDelta, b::KroeneckerDelta) = (a.p, a.q) < (b.p, b.q)
 
 Base.adjoint(d::KroeneckerDelta) = d
 
+############### OPERATOR PRODUCT ##################
+
 struct OperatorProduct
     deltas::SortedSet{KroeneckerDelta}
     operators::Vector{ExcitationOperator}
@@ -155,6 +157,8 @@ Base.isless(::Nothing, ::Nothing) = false
 
 const OpUnion =
     Union{Nothing,KroeneckerDelta,ExcitationOperator,OperatorProduct}
+
+############### OPERATOR SUM ##################
 
 struct OperatorSum{T<:Number}
     s::Vector{Pair{OpUnion,T}}
@@ -298,6 +302,8 @@ function Base.:*(a::A, b::OperatorSum{B}) where {A<:OpUnion,B<:Number}
     OperatorSum(Pair{OpUnion,B}[a * o => n for (o, n) in b.s])
 end
 
+################## COMMUTATORS ####################
+
 comm(a, b::T) where {T<:Number} = 0
 comm(a::T, b) where {T<:Number} = 0
 
@@ -338,7 +344,7 @@ function comm(a::OperatorSum{A}, b) where {A<:Number}
     sum(n * comm(o, b) for (o, n) in a.s)
 end
 
-# Basic commutator arithmetic works. Here we start expectation values.
+################### EXPECTATION VALUES ######################
 
 struct ExpectationValue
     p::OperatorProduct
@@ -394,6 +400,15 @@ function exval(p::OperatorProduct)
         exval(comm(
             OperatorProduct(p.deltas, p.operators[1:end-1]), p.operators[end]
         ))
+    elseif isone(length(p.operators))
+        o = p.operators[1]
+        if o.p.o == occ || o.q.o == occ
+            np = deepcopy(p)
+            empty!(np.operators)
+            2 * np * δ(o.p, o.q)
+        else
+            ExpectationValue(p)
+        end
     else
         ExpectationValue(p)
     end
@@ -405,9 +420,9 @@ struct ExpectationProduct
     vals::Vector{ExpectationValue}
     function ExpectationProduct(v::Vector{ExpectationValue})
         v = sort(v)
-        for i = 2:length(v)
-            union!(v[1].p.deltas, v[i].p.deltas)
-            empty!(v[i].p.deltas)
+        for x in @view v[2:end]
+            union!(first(v).p.deltas, x.p.deltas)
+            empty!(x.p.deltas)
         end
         new(v)
     end
@@ -423,10 +438,202 @@ function Base.:*(a::ExpectationValue, b::ExpectationValue)
     ExpectationProduct([a, b])
 end
 
-const ExUnion = 0
+function Base.:*(a::ExpectationProduct, b::ExpectationValue)
+    ExpectationProduct([a.vals; b])
+end
+
+function Base.:*(a::ExpectationValue, b::ExpectationProduct)
+    ExpectationProduct([a; b.vals])
+end
+
+function Base.:*(a::ExpectationProduct, b::ExpectationProduct)
+    ExpectationProduct([a.vals; b.vals])
+end
+
+function Base.isless(a::ExpectationValue, b::ExpectationProduct)
+    [a] < b.vals
+end
+
+function Base.isless(a::ExpectationProduct, b::ExpectationValue)
+    a.vals < [b]
+end
+
+function Base.isless(a::ExpectationProduct, b::ExpectationProduct)
+    a.vals < b.vals
+end
+
+Base.isless(::KroeneckerDelta, ::ExpectationValue) = true
+Base.isless(::ExpectationValue, ::KroeneckerDelta) = false
+
+Base.isless(::KroeneckerDelta, ::ExpectationProduct) = true
+Base.isless(::ExpectationProduct, ::KroeneckerDelta) = false
+
+Base.isless(::OperatorProduct, ::ExpectationValue) = true
+Base.isless(::ExpectationValue, ::OperatorProduct) = false
+
+Base.isless(::OperatorProduct, ::ExpectationProduct) = true
+Base.isless(::ExpectationProduct, ::OperatorProduct) = false
+
+Base.isless(::Nothing, ::ExpectationValue) = true
+Base.isless(::ExpectationValue, ::Nothing) = false
+
+Base.isless(::Nothing, ::ExpectationProduct) = true
+Base.isless(::ExpectationProduct, ::Nothing) = false
+
+const ExSubUnion =
+    Union{ExpectationValue,ExpectationProduct}
+
+const ExComUnion = Union{Nothing,KroeneckerDelta,OperatorProduct}
+
+const ExUnion =
+    Union{Nothing,KroeneckerDelta,OperatorProduct,ExpectationValue,ExpectationProduct}
+
+############### EXPECTATION SUMS ##################
 
 struct ExpectationSum{T<:Number}
+    s::Vector{Pair{ExUnion,T}}
 
+    function ExpectationSum(s::Vector{Pair{ExUnion,T}}) where {T<:Number}
+        lookup = SortedDict{ExUnion,T}()
+        for (o, n) in s
+            lookup[o] = get(lookup, o, zero(T)) + n
+        end
+        s2 = Pair{ExUnion,T}[o => n for (o, n) in lookup if !iszero(n)]
+        isempty(s2) ? zero(T) : new{T}(s2)
+    end
+end
+
+function Base.show(io::IO, s::ExpectationSum)
+    if !isone(abs(s.s[1].second))
+        print(io,
+            s.s[1].second, ' ', isnothing(s.s[1].first) ? '\b' : s.s[1].first)
+    else
+        if isone(-s.s[1].second)
+            print(io, '-')
+        end
+        print(io, isnothing(s.s[1].first) ? 1 : s.s[1].first)
+    end
+    for o in @view s.s[2:end]
+        print(io, ' ', o.second < 0 ? '-' : '+', ' ')
+        if !isone(abs(o.second))
+            print(io, abs(o.second), ' ')
+        end
+        print(io, isnothing(o.first) ? 1 : o.first)
+    end
+end
+
+function Base.:-(a::A) where {A<:ExSubUnion}
+    ExpectationSum(Pair{ExUnion,Int}[a=>-1])
+end
+
+function Base.:*(n::T, p::EX) where {T<:Number,EX<:ExSubUnion}
+    ExpectationSum(Pair{ExUnion,T}[p=>n])
+end
+Base.:*(p::EX, n::T) where {T<:Number,EX<:ExSubUnion} = n * p
+
+function Base.:+(a::A, b::B) where {A<:ExUnion,B<:ExSubUnion}
+    ExpectationSum(Pair{ExUnion,Int}[a=>1, b=>1])
+end
+function Base.:+(a::A, b::B) where {A<:ExSubUnion,B<:ExComUnion}
+    ExpectationSum(Pair{ExUnion,Int}[a=>1, b=>1])
+end
+function Base.:-(a::A, b::B) where {A<:ExSubUnion,B<:ExUnion}
+    ExpectationSum(Pair{ExUnion,Int}[a=>1, b=>-1])
+end
+function Base.:-(a::A, b::B) where {A<:ExSubUnion,B<:ExComUnion}
+    ExpectationSum(Pair{ExUnion,Int}[a=>1, b=>-1])
+end
+
+function Base.:+(a::A, b::B) where {A<:Number,B<:ExSubUnion}
+    ExpectationSum(Pair{ExUnion,A}[nothing=>a, b=>one(A)])
+end
+function Base.:+(a::A, b::B) where {A<:ExSubUnion,B<:Number}
+    b + a
+end
+
+Base.:*(::Nothing, b::B) where {B<:ExSubUnion} = b
+Base.:*(a::A, ::Nothing) where {A<:ExSubUnion} = a
+
+function Base.:-(a::A, b::B) where {A<:Number,B<:ExSubUnion}
+    ExpectationSum(Pair{ExUnion,A}[nothing=>a, b=>-one(A)])
+end
+function Base.:-(a::A, b::B) where {A<:ExSubUnion,B<:Number}
+    b + (-a)
+end
+
+function Base.:+(a::ExpectationSum{T}, b::EX) where {T<:Number,EX<:ExUnion}
+    ExpectationSum(Pair{ExUnion,Int}[a.s; b => 1])
+end
+function Base.:+(a::EX, b::ExpectationSum{T}) where {T<:Number,EX<:ExUnion}
+    ExpectationSum(Pair{ExUnion,promote_type(Int, T)}[a => 1; b.s])
+end
+
+function Base.:+(
+    a::ExpectationSum{A}, b::ExpectationSum{B}
+) where {A<:Number,B<:Number}
+    ExpectationSum(Pair{ExUnion,promote_type(A, B)}[a.s; b.s])
+end
+
+function Base.:+(a::A, b::ExpectationSum{B}) where {A<:Number,B<:Number}
+    ExpectationSum(Pair{ExUnion,promote_type(A, B)}[nothing => a; b.s])
+end
+
+function Base.:+(a::ExpectationSum{A}, b::B) where {A<:Number,B<:Number}
+    ExpectationSum(Pair{ExUnion,promote_type(A, B)}[a.s; nothing => b])
+end
+
+function Base.:-(a::ExpectationSum{T}) where {T<:Number}
+    ExpectationSum(Pair{ExUnion,T}[o => -n for (o, n) in a.s])
+end
+
+function Base.:-(a::ExpectationSum{T}, b::EX) where {T<:Number,EX<:ExUnion}
+    ExpectationSum(Pair{ExUnion,promote_type(Int, T)}[a.s; b => -1])
+end
+
+function Base.:-(a::EX, b::ExpectationSum{T}) where {T<:Number,EX<:ExUnion}
+    a + (-b)
+end
+
+function Base.:-(
+    a::ExpectationSum{A}, b::ExpectationSum{B}
+) where {A<:Number,B<:Number}
+    a + (-b)
+end
+
+function Base.:-(a::A, b::ExpectationSum{B}) where {A<:Number,B<:Number}
+    a + (-b)
+end
+function Base.:-(a::ExpectationSum{A}, b::B) where {A<:Number,B<:Number}
+    a + (-b)
+end
+
+depth::Int = 0
+
+function exval(p::OperatorSum{T}) where {T<:Number}
+    global depth
+
+    v = Pair{ExUnion,T}[]
+
+    for (o, n) in p.s
+        ev = exval(o)
+        if isnothing(ev)
+            push!(v, nothing => n)
+        elseif ev isa Number
+            push!(v, nothing => n * ev)
+        elseif ev isa OperatorSum
+            for (o, n2) in ev.s
+                push!(v, o => n * n2)
+            end
+        elseif ev isa ExpectationSum
+            for (ev2, n2) in ev.s
+                push!(v, ev2 => n * n2)
+            end
+        else
+            push!(v, ev => n)
+        end
+    end
+
+    ExpectationSum(v)
 end
 
 end # module

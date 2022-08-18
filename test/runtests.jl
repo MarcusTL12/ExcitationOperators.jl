@@ -122,7 +122,27 @@ ex1 = exval(δ(a, b) * E(p, q) * E(r, s))
 
 @show ex1
 
-@show ex1 * exval(E(p, q))
+ex2 = ex1 * exval(E(p, q))
+
+@show ex2
 
 @show exval(E(p, q)) * exval(E(p, q))
 @show exval(E(r, s)) * exval(E(p, q))
+
+println("\nEXPECTATION SUMS:")
+
+@show -ex1
+@show 3ex2
+
+@show ex1 - 3
+@show ex2 - ex1
+
+@show ex2 - δ(i, j)
+
+println()
+
+@show exval(comm(E(i, a), comm(E(p, q), E(b, j))))
+
+println()
+
+@show exval(comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l))))
