@@ -134,3 +134,8 @@ function Base.:*(a::CompositeTerm{A}, b::CompositeTerm{B}) where
         [a.operators; b.operators]
     )
 end
+
+# Negating scalar
+
+Base.:-(t::CompositeTerm{T}) where {T<:Number} =
+    CompositeTerm(-t.scalar, t.deltas, t.tensors, t.operators)

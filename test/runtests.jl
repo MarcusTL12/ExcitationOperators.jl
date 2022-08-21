@@ -78,7 +78,7 @@ dd2 = d2 * E(i, j)
 
 @show E(p, q) * hpq
 @show E(p, q) * E(r, s) * gpqrs
-@show E(p, q) * E(r, s) * δ(q, r) * gpqrs
+@show -E(p, q) * E(r, s) * δ(q, r) * gpqrs
 @show hpq * gpqrs
 @show hrs * gpqrs
 
