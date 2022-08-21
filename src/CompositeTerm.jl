@@ -76,6 +76,13 @@ Base.adjoint(t::CompositeTerm{T}) where {T<:Number} = CompositeTerm(
     reverse(adjoint.(t.operators))
 )
 
+# Chech whether the non-scalar part is the same
+function issimilar(a::CompositeTerm{A}, b::CompositeTerm{B}) where
+{A<:Number,B<:Number}
+    (a.deltas, a.tensors, a.operators) ==
+    (b.deltas, b.tensors, b.operators)
+end
+
 # Promotation
 
 CompositeTerm(n::T) where {T<:Number} = CompositeTerm(
