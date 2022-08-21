@@ -2,9 +2,9 @@ module ExcitationOperators
 
 using DataStructures: SortedSet, SortedDict
 
-export occ, vir, gen, ind, E, δ, comm, exval
+export occ, vir, gen, ind, E, δ, comm, exval, Tensor2, Tensor4
 
-@enum Occupation gen vir occ
+@enum Occupation vir gen occ
 
 struct MOIndex
     o::Occupation
@@ -60,49 +60,112 @@ Base.adjoint(d::KroeneckerDelta) = d
 
 ############### OPERATOR PRODUCT ##################
 
+abstract type Tensor end
+
+struct Tensor2 <: Tensor
+    symbol :: String
+    p :: MOIndex
+    q :: MOIndex
+end
+
+struct Tensor4 <: Tensor
+    symbol :: String
+    p :: MOIndex
+    q :: MOIndex
+    r :: MOIndex
+    s :: MOIndex
+end
+
+function Base.isless(a::Tensor2, b::Tensor2)
+    (a.p, a.q) < (b.p, b.q)
+end
+
+function Base.isless(a::Tensor2, b::Tensor4)
+    (a.p, a.q) < (b.p, b.q)
+end
+
+function Base.isless(a::Tensor4, b::Tensor2)
+    (a.p, a.q) < (b.p, b.q)
+end
+
+function Base.isless(a::Tensor4, b::Tensor4)
+    (a.p, a.q, a.r, a.s) < (b.p, b.q, b.r, b.s)
+end
+
 struct OperatorProduct
     deltas::SortedSet{KroeneckerDelta}
+    tensors::SortedSet{Tensor}
     operators::Vector{ExcitationOperator}
 end
 
 function Base.:(==)(a::OperatorProduct, b::OperatorProduct)
-    (collect(a.deltas), a.operators) == (collect(b.deltas), b.operators)
+    (collect(a.deltas), collect(a.tensors), a.operators) == (collect(b.deltas), collect(b.tensors), b.operators)
 end
 
 function Base.:*(a::KroeneckerDelta, b::KroeneckerDelta)
-    OperatorProduct(SortedSet([a, b]), ExcitationOperator[])
+    OperatorProduct(SortedSet([a, b]), SortedSet(), ExcitationOperator[])
 end
 
 function Base.:*(a::OperatorProduct, b::KroeneckerDelta)
-    OperatorProduct(union(a.deltas, [b]), a.operators)
+    OperatorProduct(union(a.deltas, [b]), a.tensors, a.operators)
 end
 
 Base.:*(a::KroeneckerDelta, b::OperatorProduct) = b * a
 
 function Base.:*(a::ExcitationOperator, b::ExcitationOperator)
-    OperatorProduct(SortedSet(), ExcitationOperator[a, b])
+    OperatorProduct(SortedSet(), SortedSet(), ExcitationOperator[a, b])
 end
 
 function Base.:*(a::KroeneckerDelta, b::ExcitationOperator)
-    OperatorProduct(SortedSet([a]), ExcitationOperator[b])
+    OperatorProduct(SortedSet([a]), SortedSet(), ExcitationOperator[b])
 end
 
 Base.:*(a::ExcitationOperator, b::KroeneckerDelta) = b * a
 
+function Base.:*(a::Tensor, b::Tensor)
+    OperatorProduct(SortedSet(), SortedSet([a,b]), ExcitationOperator[])
+end
+
+function Base.:*(a::Tensor, b::ExcitationOperator)
+    OperatorProduct(SortedSet(), SortedSet([a]), ExcitationOperator[b])
+end
+
+Base.:*(a::ExcitationOperator, b::Tensor) = b * a
+
+function Base.:*(a::KroeneckerDelta, b::Tensor)
+    OperatorProduct(SortedSet([a]), SortedSet([b]), ExcitationOperator[])
+end
+
+Base.:*(a::Tensor, b::KroeneckerDelta) = b * a
+
+function Base.:*(a::OperatorProduct, b::Tensor)
+    OperatorProduct(a.deltas, union(a.tensors, [b]), a.operators)
+end
+
+Base.:*(a::Tensor, b::OperatorProduct) = b * a
+
 function Base.:*(a::OperatorProduct, b::ExcitationOperator)
-    OperatorProduct(a.deltas, vcat(a.operators, b))
+    OperatorProduct(a.deltas, a.tensors, vcat(a.operators, b))
 end
 
 function Base.:*(a::ExcitationOperator, b::OperatorProduct)
-    OperatorProduct(b.deltas, vcat(a, b.operators))
+    OperatorProduct(b.deltas, b.tensors, vcat(a, b.operators))
 end
 
 function Base.:*(a::OperatorProduct, b::OperatorProduct)
-    OperatorProduct(union(a.deltas, b.deltas), vcat(a.operators, b.operators))
+    OperatorProduct(union(a.deltas, b.deltas), union(a.tensors, b.tensors), vcat(a.operators, b.operators))
 end
 
 function Base.adjoint(p::OperatorProduct)
-    OperatorProduct(p.deltas, reverse!([x' for x in p.operators]))
+    OperatorProduct(p.deltas, p.tensors, reverse!([x' for x in p.operators]))
+end
+
+function Base.show(io::IO, t::Tensor2)
+    print(io, t.symbol, "_", t.p.n, t.q.n)
+end
+
+function Base.show(io::IO, t::Tensor4)
+    print(io, t.symbol, "_", t.p.n, t.q.n, t.r.n, t.s.n)
 end
 
 function Base.show(io::IO, p::OperatorProduct)
@@ -111,6 +174,11 @@ function Base.show(io::IO, p::OperatorProduct)
     for d in p.deltas
         printed = true
         print(io, d, ' ')
+    end
+
+    for t in p.tensors
+        printed = true
+        print(io, t, ' ')
     end
 
     for e in p.operators
@@ -362,6 +430,11 @@ function Base.show(io::IO, ev::ExpectationValue)
         print(io, d, ' ')
     end
 
+    for t in ev.p.tensors
+        printed = true
+        print(io, t, ' ')
+    end
+
     print(io, '⟨')
 
     for e in ev.p.operators
@@ -383,7 +456,7 @@ function exval(e::ExcitationOperator)
     elseif e.p.o == occ || e.q.o == occ
         2δ(e.p, e.q)
     else
-        ExpectationValue(OperatorProduct(SortedSet(), [e]))
+        ExpectationValue(OperatorProduct(SortedSet(), SortedSet(), [e]))
     end
 end
 
@@ -394,11 +467,11 @@ function exval(p::OperatorProduct)
         0
     elseif p.operators[1].q.o == vir
         exval(comm(
-            p.operators[1], OperatorProduct(p.deltas, p.operators[2:end])
+            p.operators[1], OperatorProduct(p.deltas, p.tensors, p.operators[2:end])
         ))
     elseif p.operators[end].p.o == vir
         exval(comm(
-            OperatorProduct(p.deltas, p.operators[1:end-1]), p.operators[end]
+            OperatorProduct(p.deltas, p.tensors, p.operators[1:end-1]), p.operators[end]
         ))
     elseif isone(length(p.operators))
         o = p.operators[1]

@@ -68,6 +68,12 @@ dd2 = d2 * E(i, j)
 
 @show E(p, q) * 3
 
+@show E(p, q) * Tensor2("h", p, q)
+@show E(p, q) * E(r, s) * Tensor4("g", p, q, r, s)
+@show E(p, q) * E(r, s) * δ(q, r) * Tensor4("g", p, q, r, s)
+@show Tensor2("h", p, q) * Tensor4("g", p, q, r, s)
+@show Tensor2("h", r, s) * Tensor2("h", p, q)
+
 println("\nSUMS:")
 
 @show E(i, j) + 0
@@ -128,6 +134,9 @@ ex2 = ex1 * exval(E(p, q))
 
 @show exval(E(p, q)) * exval(E(p, q))
 @show exval(E(r, s)) * exval(E(p, q))
+
+@show exval(E(p, q) * Tensor2("h", p, q))
+@show exval(E(p, q) * E(r, s) * Tensor4("g", p, q, r, s))
 
 println("\nEXPECTATION SUMS:")
 
