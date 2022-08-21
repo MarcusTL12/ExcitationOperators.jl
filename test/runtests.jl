@@ -42,6 +42,14 @@ d3 = δ(a, i)
 @show d1 > d2
 @show d2 >= d1
 
+println("\nTENSORS:")
+
+hpq = real_tensor("h", p, q)
+hrs = real_tensor("h", r, s)
+gpqrs = real_tensor("g", p, q, r, s)
+
+@show hpq hrs gpqrs
+
 println("\nPRODUCTS:")
 
 dd = d1 * d2
@@ -68,90 +76,90 @@ dd2 = d2 * E(i, j)
 
 @show E(p, q) * 3
 
-@show E(p, q) * Tensor2("h", p, q)
-@show E(p, q) * E(r, s) * Tensor4("g", p, q, r, s)
-@show E(p, q) * E(r, s) * δ(q, r) * Tensor4("g", p, q, r, s)
-@show Tensor2("h", p, q) * Tensor4("g", p, q, r, s)
-@show Tensor2("h", r, s) * Tensor2("h", p, q)
+@show E(p, q) * hpq
+@show E(p, q) * E(r, s) * gpqrs
+@show E(p, q) * E(r, s) * δ(q, r) * gpqrs
+@show hpq * gpqrs
+@show hrs * gpqrs
 
-println("\nSUMS:")
+# println("\nSUMS:")
 
-@show E(i, j) + 0
+# @show E(i, j) + 0
 
-dd3 = dd - dd2
+# dd3 = dd - dd2
 
-@show dd3
+# @show dd3
 
-dd4 = dd3 + E(a, p)
+# dd4 = dd3 + E(a, p)
 
-@show dd4
+# @show dd4
 
-dd5 = δ(p, a) - E(j, i)
+# dd5 = δ(p, a) - E(j, i)
 
-dd6 = nothing + dd5 + 3dd4 + nothing - 3E(a, p)
+# dd6 = nothing + dd5 + 3dd4 + nothing - 3E(a, p)
 
-@show dd6
-@show -dd6' + 2 // 3
+# @show dd6
+# @show -dd6' + 2 // 3
 
-@show (3 + δ(i, j) * E(a, b) - 2 // 3 * E(p, q)) * (3 * δ(p, i) - E(q, j))
+# @show (3 + δ(i, j) * E(a, b) - 2 // 3 * E(p, q)) * (3 * δ(p, i) - E(q, j))
 
-println("\nCOMMUTATORS:")
+# println("\nCOMMUTATORS:")
 
-@show comm(E(p, q), E(a, i))
-@show comm(E(i, a), E(b, j))
-@show comm(E(i, a), E(j, b))
-@show comm(E(i, a), E(a, j))
+# @show comm(E(p, q), E(a, i))
+# @show comm(E(i, a), E(b, j))
+# @show comm(E(i, a), E(j, b))
+# @show comm(E(i, a), E(a, j))
 
-println()
+# println()
 
-@show comm(E(i, a), E(p, q) * E(b, j))
-@show comm(E(i, a) * E(p, q), E(b, j))
-@show comm(E(i, a) * E(p, q), E(a, i) * E(b, j))
+# @show comm(E(i, a), E(p, q) * E(b, j))
+# @show comm(E(i, a) * E(p, q), E(b, j))
+# @show comm(E(i, a) * E(p, q), E(a, i) * E(b, j))
 
-println()
+# println()
 
-@show comm(E(i, a), comm(E(p, q), E(b, j)))
-@show comm(comm(E(i, a), E(p, q)), E(b, j))
+# @show comm(E(i, a), comm(E(p, q), E(b, j)))
+# @show comm(comm(E(i, a), E(p, q)), E(b, j))
 
-println()
+# println()
 
-@show comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l)))
+# @show comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l)))
 
-println("\nEXPECTATION VALUES:")
-@show exval(E(p, q))
-@show exval(E(a, q))
-@show exval(E(p, i))
+# println("\nEXPECTATION VALUES:")
+# @show exval(E(p, q))
+# @show exval(E(a, q))
+# @show exval(E(p, i))
 
-println()
+# println()
 
-ex1 = exval(δ(a, b) * E(p, q) * E(r, s))
+# ex1 = exval(δ(a, b) * E(p, q) * E(r, s))
 
-@show ex1
+# @show ex1
 
-ex2 = ex1 * exval(E(p, q))
+# ex2 = ex1 * exval(E(p, q))
 
-@show ex2
+# @show ex2
 
-@show exval(E(p, q)) * exval(E(p, q))
-@show exval(E(r, s)) * exval(E(p, q))
+# @show exval(E(p, q)) * exval(E(p, q))
+# @show exval(E(r, s)) * exval(E(p, q))
 
-@show exval(E(p, q) * Tensor2("h", p, q))
-@show exval(E(p, q) * E(r, s) * Tensor4("g", p, q, r, s))
+# @show exval(E(p, q) * Tensor2("h", p, q))
+# @show exval(E(p, q) * E(r, s) * Tensor4("g", p, q, r, s))
 
-println("\nEXPECTATION SUMS:")
+# println("\nEXPECTATION SUMS:")
 
-@show -ex1
-@show 3ex2
+# @show -ex1
+# @show 3ex2
 
-@show ex1 - 3
-@show ex2 - ex1
+# @show ex1 - 3
+# @show ex2 - ex1
 
-@show ex2 - δ(i, j)
+# @show ex2 - δ(i, j)
 
-println()
+# println()
 
-@show exval(comm(E(i, a), comm(E(p, q), E(b, j))))
+# @show exval(comm(E(i, a), comm(E(p, q), E(b, j))))
 
-println()
+# println()
 
-@show exval(comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l))))
+# @show exval(comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l))))
