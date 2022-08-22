@@ -103,27 +103,27 @@ dd5 = gpqrs * δ(p, a) - E(j, i) * hpq
 
 @show (3 + δ(i, j) * E(a, b) - 2 // 3 * E(p, q)) * (3 * δ(p, i) - E(q, j))
 
-# println("\nCOMMUTATORS:")
+println("\nCOMMUTATORS:")
 
-# @show comm(E(p, q), E(a, i))
-# @show comm(E(i, a), E(b, j))
-# @show comm(E(i, a), E(j, b))
-# @show comm(E(i, a), E(a, j))
+@show comm(E(p, q), E(a, i))
+@show comm(E(i, a), E(b, j))
+@show comm(E(i, a), E(j, b))
+@show comm(E(i, a), E(a, j))
 
-# println()
+println()
 
-# @show comm(E(i, a), E(p, q) * E(b, j))
-# @show comm(E(i, a) * E(p, q), E(b, j))
-# @show comm(E(i, a) * E(p, q), E(a, i) * E(b, j))
+@show comm(E(i, a), E(p, q) * E(b, j))
+@show comm(E(i, a) * E(p, q), E(b, j))
+@show comm(E(i, a) * E(p, q), E(a, i) * E(b, j))
 
-# println()
+println()
 
-# @show comm(E(i, a), comm(E(p, q), E(b, j)))
-# @show comm(comm(E(i, a), E(p, q)), E(b, j))
+@show comm(E(i, a), comm(E(p, q), E(b, j)))
+@show comm(comm(E(i, a), E(p, q)), E(b, j))
 
-# println()
+println()
 
-# @show comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l)))
+@show comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l)))
 
 # println("\nEXPECTATION VALUES:")
 # @show exval(E(p, q))

@@ -8,5 +8,6 @@ include("Delta.jl")
 include("Tensor.jl")
 include("CompositeTerm.jl")
 include("SumType.jl")
+include("Commutator.jl")
 
 end # module

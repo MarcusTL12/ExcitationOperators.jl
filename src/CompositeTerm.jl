@@ -147,10 +147,14 @@ end
 Base.:-(t::CompositeTerm{T}) where {T<:Number} =
     CompositeTerm(-t.scalar, t.deltas, t.tensors, t.operators)
 
-
 # Utility method for promoting scalar type of term. Will just try calling
 # NT(scalar)
 function convert_scalar(::Type{NT}, t::CompositeTerm{T}) where
 {NT<:Number,T<:Number}
     CompositeTerm(NT(t.scalar), t.deltas, t.tensors, t.operators)
+end
+
+# Utility method for getting the non-operator part of a term
+function get_nonop(t::CompositeTerm{T}) where {T<:Number}
+    CompositeTerm(t.scalar, t.deltas, t.tensors, ExcitationOperator[])
 end
