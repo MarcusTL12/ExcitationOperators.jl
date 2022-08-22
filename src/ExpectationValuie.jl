@@ -17,13 +17,32 @@ function exval(t::CompositeTerm{T}) where {T<:Number}
             else
                 np = make_occ(o.p)
                 nq = make_occ(o.q)
-                nonop_part = exchange_index(nonop_part, [o.p => np, o.q => nq])
-                nonop_part * 2δ(np, nq)
+                exchange_index(nonop_part, [o.p => np, o.q => nq]) * 2δ(np, nq)
             end
         else
-            throw("Have not gotten around to implementing expectation \
-            values for strings of $(length(t.operators)) or more excitation \
-                operators.")
+            i = findfirst(x -> x.p.o == vir || x.q.o == vir, t.operators)
+            if i isa Int
+                if t.operators[i].p.o == vir
+                    i -= 1
+                end
+
+                 exval(nonop_part * comm(
+                    CompositeTerm(t.operators[1:i]),
+                    CompositeTerm(t.operators[i+1:end])
+                ))
+            elseif first(t.operators).q.o == occ
+                nonop_part * exval(CompositeTerm(first(t.operators))) *
+                exval(CompositeTerm(t.operators[2:end]))
+            elseif last(t.operators).p.o == occ
+                nonop_part * exval(CompositeTerm(t.operators[1:end-1])) *
+                exval(CompositeTerm(last(t.operators)))
+            else
+                throw("Not implemented: $t")
+            end
         end
     end
+end
+
+function exval(s::SumType{T}) where {T<:Number}
+    SumType(exval.(s.terms))
 end

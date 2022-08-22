@@ -28,3 +28,6 @@ function make_vir(i::MOIndex)
         i
     end
 end
+
+# TODO: make is_occ, is_gen and is_occ methods
+# and refactor code to make use of them

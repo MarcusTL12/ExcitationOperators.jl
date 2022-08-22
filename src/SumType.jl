@@ -97,7 +97,7 @@ end
 
 function Base.:*(a::SumType{A}, b::Union{B,CompositeTerm{B}}) where
 {A<:Number,B<:Number}
-    b * a
+    SumType([t * b for t in a.terms])
 end
 
 function Base.:*(a::SumType{A}, b::SumType{B}) where {A<:Number,B<:Number}

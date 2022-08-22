@@ -70,8 +70,8 @@ end
 
 function Base.isless(a::CompositeTerm{A}, b::CompositeTerm{B}) where
 {A<:Number,B<:Number}
-    (a.sum_inds, a.deltas, a.tensors, a.operators, a.scalar) <
-    (b.sum_inds, b.deltas, b.tensors, b.operators, b.scalar)
+    (a.sum_inds, a.deltas, a.tensors, a.operators, -a.scalar) <
+    (b.sum_inds, b.deltas, b.tensors, b.operators, -b.scalar)
 end
 
 function Base.show(io::IO, t::CompositeTerm{T}) where {T<:Number}
@@ -168,6 +168,13 @@ CompositeTerm(e::ExcitationOperator) = CompositeTerm(
     SortedSet{KroeneckerDelta}(),
     Tensor[],
     [e]
+)
+
+CompositeTerm(operators::Vector{ExcitationOperator}) = CompositeTerm(
+    1,
+    SortedSet{KroeneckerDelta}(),
+    Tensor[],
+    operators
 )
 
 # Make constructors for types to make CompositeTerm the external interface type

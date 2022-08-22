@@ -159,37 +159,34 @@ using ExcitationOperators
     @show exval(E(a, q))
     @show exval(E(p, i))
 
-    # println()
+    println()
 
-    # ex1 = exval(δ(a, b) * E(p, q) * E(r, s))
+    @show exval(comm(h, T1))
 
-    # @show ex1
+    println()
 
-    # ex2 = ex1 * exval(E(p, q))
+    @show exval(E(i, a) * E(b, j))
 
-    # @show ex2
+    println()
 
-    # @show exval(E(p, q)) * exval(E(p, q))
-    # @show exval(E(r, s)) * exval(E(p, q))
+    @show summation(hpq * E(p, q), [p, q])
+    @show exval(summation(hpq * E(p, q), [p, q]))
 
-    # @show exval(E(p, q) * Tensor2("h", p, q))
-    # @show exval(E(p, q) * E(r, s) * Tensor4("g", p, q, r, s))
+    println()
 
-    # println("\nEXPECTATION SUMS:")
+    @show exval(comm(E(i, a), comm(E(p, q), E(b, j))))
 
-    # @show -ex1
-    # @show 3ex2
+    println()
 
-    # @show ex1 - 3
-    # @show ex2 - ex1
+    @show exval(comm(E(i, a), comm(comm(E(p, q), E(b, j)), E(c, k))))
 
-    # @show ex2 - δ(i, j)
+    println()
 
-    # println()
+    # Hand check this one
+    @show exval(comm(E(i, a), comm(E(p, q), E(b, j) * E(c, k))))
 
-    # @show exval(comm(E(i, a), comm(E(p, q), E(b, j))))
+    println()
 
-    # println()
-
-    # @show exval(comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l))))
+    # @show exval(E(j, j) * E(p, q))
+    @show exval(E(j, b) * E(p, q) * E(b, j))
 end
