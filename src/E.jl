@@ -15,9 +15,9 @@ end
 
 function exchange_index(o::ExcitationOperator, i::Int, ind::MOIndex)
     if i == 1
-        ExcitationOperator(i, o.q)
+        ExcitationOperator(ind, o.q)
     elseif i == 2
-        ExcitationOperator(o.p, i)
+        ExcitationOperator(o.p, ind)
     end
 end
 

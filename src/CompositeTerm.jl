@@ -28,12 +28,19 @@ struct CompositeTerm{T<:Number}
 
             t = new{T}(n, sum_inds, deltas, sort(tensors), operators)
 
-            if isempty(intersect(delta_inds, sum_inds))
+            to_sum_over = nothing
+            for i in sum_inds
+                if i ∈ delta_inds
+                    to_sum_over = i
+                    break
+                end
+            end
+
+            if isnothing(to_sum_over)
                 t
             else
-                for i in sum_inds
-                    t = summation(t, i)
-                end
+                delete!(t.sum_inds, to_sum_over)
+                t = summation(t, to_sum_over)
 
                 t
             end
@@ -63,8 +70,8 @@ end
 
 function Base.isless(a::CompositeTerm{A}, b::CompositeTerm{B}) where
 {A<:Number,B<:Number}
-    (a.sum_inds, a.scalar, a.deltas, a.tensors, a.operators) <
-    (b.sum_inds, b.scalar, b.deltas, b.tensors, b.operators)
+    (a.sum_inds, a.deltas, a.tensors, a.operators, a.scalar) <
+    (b.sum_inds, b.deltas, b.tensors, b.operators, b.scalar)
 end
 
 function Base.show(io::IO, t::CompositeTerm{T}) where {T<:Number}

@@ -6,39 +6,58 @@ function summation(t::CompositeTerm{A}, sum_ind::MOIndex) where {A<:Number}
     if !isempty(is)
         i = first(is)
         d = deltas[i]
-        other_ind = if d.p == sum_ind
+        old_ind = if d.p == sum_ind
             d.q
         else
             d.p
         end
 
-        other_ind_n = other_ind.n
+        new_ind_n = old_ind.n
 
-        if other_ind.o == gen
+        if old_ind.o == gen
             if sum_ind.o == occ
-                other_ind_n = other_ind_n * "ᵒ"
+                new_ind_n = new_ind_n * "ᵒ"
             elseif sum_ind.o == vir
-                other_ind_n = other_ind_n * "ᵛ"
+                new_ind_n = new_ind_n * "ᵛ"
             end
         end
 
-        other_ind = ind(sum_ind.o, other_ind_n)
+        new_ind = ind(sum_ind.o, new_ind_n)
 
         tensors = copy(t.tensors)
         for i in eachindex(tensors)
-            tensors[i] = exchange_index(tensors[i], sum_ind, other_ind)
+            tensors[i] = exchange_index(tensors[i], sum_ind, new_ind)
+            tensors[i] = exchange_index(tensors[i], old_ind, new_ind)
         end
 
         operators = copy(t.operators)
         for i in eachindex(operators)
-            operators[i] = exchange_index(operators[i], sum_ind, other_ind)
+            operators[i] = exchange_index(operators[i], sum_ind, new_ind)
+            operators[i] = exchange_index(operators[i], old_ind, new_ind)
         end
 
-        deltas = SortedSet(
-            [d for d in deltas if d.p != sum_ind && d.q != sum_ind]
-        )
+        new_deltas = SortedSet{KroeneckerDelta}()
+        for d in deltas
+            nd = exchange_index(d, sum_ind, new_ind)
+            if nd isa KroeneckerDelta
+                nd = exchange_index(nd, old_ind, new_ind)
+            end
+            if nd isa KroeneckerDelta
+                push!(new_deltas, nd)
+            elseif iszero(nd)
+                return CompositeTerm(zero(A))
+            end
+        end
 
-        CompositeTerm(t.scalar, t.sum_inds, deltas, tensors, operators)
+        sum_inds = collect(t.sum_inds)
+        for i in eachindex(sum_inds)
+            if sum_inds[i] == sum_ind || sum_inds[i] == old_ind
+                sum_inds[i] == new_ind
+            end
+        end
+        sum_inds = SortedSet(sum_inds)
+
+        CompositeTerm(t.scalar, sum_inds, new_deltas, tensors, operators)
     else
         CompositeTerm(t.scalar, union(t.sum_inds, [sum_ind]),
             t.deltas, t.tensors, t.operators)

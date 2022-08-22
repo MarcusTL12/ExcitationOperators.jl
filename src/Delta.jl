@@ -21,3 +21,15 @@ end
 Base.isless(a::KroeneckerDelta, b::KroeneckerDelta) = (a.p, a.q) < (b.p, b.q)
 
 Base.adjoint(d::KroeneckerDelta) = d
+
+function exchange_index(d::KroeneckerDelta, i::Int, ind::MOIndex)
+    if i == 1
+        KroeneckerDelta(ind, d.q)
+    elseif i == 2
+        KroeneckerDelta(d.p, ind)
+    end
+end
+
+function exchange_index(d::KroeneckerDelta, from::MOIndex, to::MOIndex)
+    KroeneckerDelta(d.p == from ? to : d.p, d.q == from ? to : d.q)
+end

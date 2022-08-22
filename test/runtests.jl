@@ -135,6 +135,7 @@ println()
 @show summation(tmp, [p, q])
 
 println()
+@show summation(δ(a, p) * δ(i, q) * E(a, i), [p, q])
 @show summation(δ(a, p) * δ(i, q) * E(a, i), [a, i])
 
 println()
@@ -142,6 +143,10 @@ println()
 @show tai = real_tensor("t", a, i)
 @show T1 = summation(tai * E(a, i), [a, i])
 @show comm(h, T1)
+
+println()
+@show summation(comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l))),
+    [p, q])
 
 # println("\nEXPECTATION VALUES:")
 # @show exval(E(p, q))

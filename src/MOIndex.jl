@@ -1,6 +1,6 @@
 export occ, vir, gen, ind
 
-@enum Occupation vir gen occ
+@enum Occupation gen vir occ
 
 struct MOIndex
     o::Occupation
