@@ -128,10 +128,11 @@ println()
 println("\nSIMPLE SUMMATIONS:")
 
 @show summation(hpq * δ(p, q) * E(p, q), p)
+@show summation(hpq * δ(p, a) * E(q, i), i)
 
 println()
 @show tmp = hpq * comm(E(i, a), E(p, q) * E(b, j))
-@show summation(tmp, Set([p, q]))
+@show summation(tmp, p)
 
 # println("\nEXPECTATION VALUES:")
 # @show exval(E(p, q))

@@ -1,35 +1,54 @@
 struct CompositeTerm{T<:Number}
     scalar::T
+    sum_inds::SortedSet{MOIndex}
     deltas::SortedSet{KroeneckerDelta}
     tensors::Vector{Tensor}
     operators::Vector{ExcitationOperator}
 
-    function CompositeTerm(n::T, deltas::SortedSet{KroeneckerDelta},
-        tensors::Vector{Tensor}, operators::Vector{ExcitationOperator}) where
-    {T<:Number}
+    function CompositeTerm(
+        n::T,
+        sum_inds::SortedSet{MOIndex},
+        deltas::SortedSet{KroeneckerDelta},
+        tensors::Vector{Tensor},
+        operators::Vector{ExcitationOperator}) where {T<:Number}
         if iszero(n)
             new{T}(
                 n,
+                SortedSet{MOIndex}(),
                 SortedSet{KroeneckerDelta}(),
                 Tensor[],
                 ExcitationOperator[]
             )
         else
-            new{T}(n, deltas, sort(tensors), operators)
+            new{T}(n, sum_inds, deltas, sort(tensors), operators)
         end
     end
 end
 
+function CompositeTerm(
+    n::T,
+    deltas::SortedSet{KroeneckerDelta},
+    tensors::Vector{Tensor},
+    operators::Vector{ExcitationOperator}) where {T<:Number}
+    CompositeTerm(
+        n,
+        SortedSet{MOIndex}(),
+        deltas,
+        tensors,
+        operators
+    )
+end
+
 function Base.:(==)(a::CompositeTerm{A}, b::CompositeTerm{B}) where
 {A<:Number,B<:Number}
-    (a.scalar, a.deltas, a.tensors, a.operators) ==
-    (b.scalar, b.deltas, b.tensors, b.operators)
+    (a.sum_inds, a.scalar, a.deltas, a.tensors, a.operators) ==
+    (b.sum_inds, b.scalar, b.deltas, b.tensors, b.operators)
 end
 
 function Base.isless(a::CompositeTerm{A}, b::CompositeTerm{B}) where
 {A<:Number,B<:Number}
-    (a.scalar, a.deltas, a.tensors, a.operators) <
-    (b.scalar, b.deltas, b.tensors, b.operators)
+    (a.sum_inds, a.scalar, a.deltas, a.tensors, a.operators) <
+    (b.sum_inds, b.scalar, b.deltas, b.tensors, b.operators)
 end
 
 function Base.show(io::IO, t::CompositeTerm{T}) where {T<:Number}
@@ -51,6 +70,16 @@ function Base.show(io::IO, t::CompositeTerm{T}) where {T<:Number}
         end
     end
 
+    if !isempty(t.sum_inds)
+        printsep()
+        print(io, "∑_")
+        for i in t.sum_inds
+            print(io, i.n)
+        end
+        print(io, '(')
+        sep[] = false
+    end
+
     for d in t.deltas
         printsep()
         print(io, d)
@@ -65,12 +94,17 @@ function Base.show(io::IO, t::CompositeTerm{T}) where {T<:Number}
         printsep()
         print(io, op)
     end
+
+    if !isempty(t.sum_inds)
+        print(io, ')')
+    end
 end
 
 Base.iszero(t::CompositeTerm{T}) where {T<:Number} = iszero(t.scalar)
 
 Base.adjoint(t::CompositeTerm{T}) where {T<:Number} = CompositeTerm(
     t.scalar',
+    t.sum_inds,
     t.deltas,
     Tensor[adjoint(ten) for ten in t.tensors],
     reverse(adjoint.(t.operators))
@@ -79,8 +113,8 @@ Base.adjoint(t::CompositeTerm{T}) where {T<:Number} = CompositeTerm(
 # Chech whether the non-scalar part is the same
 function issimilar(a::CompositeTerm{A}, b::CompositeTerm{B}) where
 {A<:Number,B<:Number}
-    (a.deltas, a.tensors, a.operators) ==
-    (b.deltas, b.tensors, b.operators)
+    (a.sum_inds, a.deltas, a.tensors, a.operators) ==
+    (b.sum_inds, b.deltas, b.tensors, b.operators)
 end
 
 # Promotation
@@ -125,7 +159,7 @@ real_tensor(symbol, indices...) =
 # Overloading multiplication
 
 function Base.:*(a::A, b::CompositeTerm{B}) where {A<:Number,B<:Number}
-    CompositeTerm(a * b.scalar, b.deltas, b.tensors, b.operators)
+    CompositeTerm(a * b.scalar, b.sum_inds, b.deltas, b.tensors, b.operators)
 end
 
 function Base.:*(a::CompositeTerm{A}, b::B) where {A<:Number,B<:Number}
@@ -136,6 +170,7 @@ function Base.:*(a::CompositeTerm{A}, b::CompositeTerm{B}) where
 {A<:Number,B<:Number}
     CompositeTerm(
         a.scalar * b.scalar,
+        union(a.sum_inds, b.sum_inds),
         union(a.deltas, b.deltas),
         Tensor[a.tensors; b.tensors],
         [a.operators; b.operators]
@@ -145,16 +180,21 @@ end
 # Negating scalar
 
 Base.:-(t::CompositeTerm{T}) where {T<:Number} =
-    CompositeTerm(-t.scalar, t.deltas, t.tensors, t.operators)
+    CompositeTerm(-t.scalar, t.sum_inds, t.deltas, t.tensors, t.operators)
 
 # Utility method for promoting scalar type of term. Will just try calling
 # NT(scalar)
 function convert_scalar(::Type{NT}, t::CompositeTerm{T}) where
 {NT<:Number,T<:Number}
-    CompositeTerm(NT(t.scalar), t.deltas, t.tensors, t.operators)
+    CompositeTerm(NT(t.scalar), t.sum_inds, t.deltas, t.tensors, t.operators)
 end
 
 # Utility method for getting the non-operator part of a term
 function get_nonop(t::CompositeTerm{T}) where {T<:Number}
-    CompositeTerm(t.scalar, t.deltas, t.tensors, ExcitationOperator[])
+    CompositeTerm(
+        t.scalar,
+        t.sum_inds,
+        t.deltas,
+        t.tensors,
+        ExcitationOperator[])
 end

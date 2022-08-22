@@ -4,6 +4,7 @@ struct SumType{T<:Number}
     function SumType(terms::Vector{CompositeTerm{T}}) where {T<:Number}
         counter = Dict{
             Tuple{
+                SortedSet{MOIndex},
                 SortedSet{KroeneckerDelta},
                 Vector{Tensor},
                 Vector{ExcitationOperator}
@@ -12,13 +13,13 @@ struct SumType{T<:Number}
         }()
 
         for t in terms
-            k = (t.deltas, t.tensors, t.operators)
+            k = (t.sum_inds, t.deltas, t.tensors, t.operators)
             counter[k] = get(counter, k, zero(T)) + t.scalar
         end
 
         terms = [
-            CompositeTerm(s, d, t, o)
-            for ((d, t, o), s) in counter if !iszero(s)
+            CompositeTerm(s, i, d, t, o)
+            for ((i, d, t, o), s) in counter if !iszero(s)
         ]
         sort!(terms)
 

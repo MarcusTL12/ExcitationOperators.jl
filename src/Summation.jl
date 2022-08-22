@@ -1,23 +1,5 @@
 export summation
 
-struct SummationType{T<:Number}
-    sum_inds::SortedSet{MOIndex}
-    term::CompositeTerm{T}
-end
-
-function SummationType(sum_inds, s::SummationType{A}) where {A<:Number}
-    SummationType(union(sum_inds, s.sum_inds), s.term)
-end
-
-function Base.show(io::IO, s::SummationType{T}) where {T<:Number}
-    print(io, "Σ_")
-    for ind in s.sum_inds
-        print(io, ind)
-    end
-
-    print(io, '(', s.term, ')')
-end
-
 function summation(t::CompositeTerm{A}, sum_ind::MOIndex) where {A<:Number}
     deltas = collect(t.deltas)
     is = findall(x -> x.p == sum_ind || x.q == sum_ind, deltas)
@@ -46,19 +28,15 @@ function summation(t::CompositeTerm{A}, sum_ind::MOIndex) where {A<:Number}
             [d for d in deltas if d.p != sum_ind && d.q != sum_ind]
         )
 
-        CompositeTerm(t.scalar, deltas, tensors, operators)
+        CompositeTerm(t.scalar, t.sum_inds, deltas, tensors, operators)
     else
-        SummationType(SortedSet(sum_ind), t)
+        CompositeTerm(t.scalar, union(t.sum_inds, [sum_ind]),
+            t.deltas, t.tensors, t.operators)
     end
 end
 
 function summation(s::SumType{A}, sum_ind::MOIndex) where {A<:Number}
     SumType([summation(t, sum_ind) for t in s.terms])
-end
-
-function summation(a::SummationType{A}, sum_ind::MOIndex) where {A<:Number}
-    inner_sum = summation(a.term, sum_ind)
-    SummationType(a.sum_inds, inner_sum)
 end
 
 function summation(
