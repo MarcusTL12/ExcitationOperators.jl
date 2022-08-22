@@ -1,24 +1,12 @@
 using Test
 
 using ExcitationOperators
+using ExcitationOperators.BasicStuff.StandardIndices
 
 @time begin
     println("INDICES:")
 
     @show Int.([vir, gen, occ])
-
-    p = ind(gen, "p")
-    q = ind(gen, "q")
-    r = ind(gen, "r")
-    s = ind(gen, "s")
-    i = ind(occ, "i")
-    j = ind(occ, "j")
-    k = ind(occ, "k")
-    l = ind(occ, "l")
-    a = ind(vir, "a")
-    b = ind(vir, "b")
-    c = ind(vir, "c")
-    d = ind(vir, "d")
 
     @show i, j, a, p
     @show i < a
