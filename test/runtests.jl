@@ -4,6 +4,8 @@ using ExcitationOperators
 
 println("INDICES:")
 
+@show Int.([vir, gen, occ])
+
 p = ind(gen, "p")
 q = ind(gen, "q")
 r = ind(gen, "r")
@@ -82,26 +84,24 @@ dd2 = d2 * E(i, j)
 @show hpq * gpqrs
 @show hrs * gpqrs
 
-# println("\nSUMS:")
+println("\nSUMS:")
 
-# @show E(i, j) + 0
+@show E(i, j) + 0
 
-# dd3 = dd - dd2
+dd3 = dd - dd2
 
-# @show dd3
+@show dd3
 
-# dd4 = dd3 + E(a, p)
+dd4 = dd3 + E(a, p)
 
-# @show dd4
+@show dd4
 
-# dd5 = δ(p, a) - E(j, i)
+dd5 = gpqrs * δ(p, a) - E(j, i) * hpq
 
-# dd6 = nothing + dd5 + 3dd4 + nothing - 3E(a, p)
+@show dd5
+@show -dd5' + 2 // 3
 
-# @show dd6
-# @show -dd6' + 2 // 3
-
-# @show (3 + δ(i, j) * E(a, b) - 2 // 3 * E(p, q)) * (3 * δ(p, i) - E(q, j))
+@show (3 + δ(i, j) * E(a, b) - 2 // 3 * E(p, q)) * (3 * δ(p, i) - E(q, j))
 
 # println("\nCOMMUTATORS:")
 

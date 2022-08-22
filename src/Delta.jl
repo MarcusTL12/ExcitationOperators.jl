@@ -10,7 +10,7 @@ struct KroeneckerDelta
             p, q = q, p
         end
 
-        Int(p.o) * Int(q.o) == 2 ? 0 : new(p, q)
+        p.o == occ && q.o == vir || p.o == vir && q.o == occ ? 0 : new(p, q)
     end
 end
 
