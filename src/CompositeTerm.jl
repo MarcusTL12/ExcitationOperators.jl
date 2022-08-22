@@ -84,6 +84,9 @@ function Base.show(io::IO, t::CompositeTerm{T}) where {T<:Number}
         sep[] = true
     end
 
+    all_nonscalar_empty = isempty(t.sum_inds) && isempty(t.deltas) &&
+                          isempty(t.tensors) && isempty(t.operators)
+
     if !isone(t.scalar)
         if isone(-t.scalar)
             print(io, '-')
@@ -91,6 +94,8 @@ function Base.show(io::IO, t::CompositeTerm{T}) where {T<:Number}
             printsep()
             print(io, t.scalar)
         end
+    elseif all_nonscalar_empty
+        print(io, t.scalar)
     end
 
     if !isempty(t.sum_inds)
