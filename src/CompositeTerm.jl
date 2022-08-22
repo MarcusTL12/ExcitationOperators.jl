@@ -20,7 +20,23 @@ struct CompositeTerm{T<:Number}
                 ExcitationOperator[]
             )
         else
-            new{T}(n, sum_inds, deltas, sort(tensors), operators)
+            delta_inds = Set{MOIndex}()
+            for d in deltas
+                push!(delta_inds, d.p)
+                push!(delta_inds, d.q)
+            end
+
+            t = new{T}(n, sum_inds, deltas, sort(tensors), operators)
+
+            if isempty(intersect(delta_inds, sum_inds))
+                t
+            else
+                for i in sum_inds
+                    t = summation(t, i)
+                end
+
+                t
+            end
         end
     end
 end

@@ -6,10 +6,20 @@ function summation(t::CompositeTerm{A}, sum_ind::MOIndex) where {A<:Number}
     if !isempty(is)
         i = first(is)
         d = deltas[i]
-        other_ind_n = if d.p == sum_ind
-            d.q.n
+        other_ind = if d.p == sum_ind
+            d.q
         else
-            d.p.n
+            d.p
+        end
+
+        other_ind_n = other_ind.n
+
+        if other_ind.o == gen
+            if sum_ind.o == occ
+                other_ind_n = other_ind_n * "ᵒ"
+            elseif sum_ind.o == vir
+                other_ind_n = other_ind_n * "ᵛ"
+            end
         end
 
         other_ind = ind(sum_ind.o, other_ind_n)
@@ -41,7 +51,7 @@ end
 
 function summation(
     a::Union{CompositeTerm{A},SumType{A}},
-    sum_inds::Vector{MOIndex}) where {A<:Number}
+    sum_inds) where {A<:Number}
     foldl(summation, sum_inds; init=a)
 end
 
