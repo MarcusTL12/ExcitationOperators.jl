@@ -2,6 +2,7 @@ using Test
 
 using ExcitationOperators
 using ExcitationOperators.BasicStuff.StandardIndices
+using ExcitationOperators.BasicStuff.StandardOperators
 
 @time begin
     println("INDICES:")
@@ -35,9 +36,7 @@ using ExcitationOperators.BasicStuff.StandardIndices
 
     println("\nTENSORS:")
 
-    hpq = real_tensor("h", p, q)
     hrs = real_tensor("h", r, s)
-    gpqrs = real_tensor("g", p, q, r, s)
 
     @show hpq hrs gpqrs
 
@@ -180,4 +179,23 @@ using ExcitationOperators.BasicStuff.StandardIndices
     println("\nTWO ELECTRON EXCITATIONS")
 
     @show e(p, q, r, s)
+
+    println()
+
+    @show exval(e(p, q, r, s))
+    @show exval(E(p, q) * E(r, s))
+
+    println()
+
+    @show exval(summation(gpqrs * E(p, q) * E(r, s), [p, q, r, s]))
+
+    println()
+
+    @show exval(summation(-δ(q, r) * gpqrs * E(p, s), [p, q, r, s]))
+
+    println()
+
+    @show exval(summation(gpqrs * e(p, q, r, s), [p, q, r, s]))
+
+    println()
 end

@@ -11,7 +11,7 @@ struct CompositeTerm{T<:Number}
         deltas::SortedSet{KroeneckerDelta},
         tensors::Vector{Tensor},
         operators::Vector{ExcitationOperator}) where {T<:Number}
-        if iszero(n)
+        t = if iszero(n)
             new{T}(
                 n,
                 SortedSet{MOIndex}(),
@@ -20,16 +20,17 @@ struct CompositeTerm{T<:Number}
                 ExcitationOperator[]
             )
         else
+
+            t = new{T}(n, sum_inds, deltas, sort(tensors), operators)
+
             delta_inds = Set{MOIndex}()
-            for d in deltas
+            for d in t.deltas
                 push!(delta_inds, d.p)
                 push!(delta_inds, d.q)
             end
 
-            t = new{T}(n, sum_inds, deltas, sort(tensors), operators)
-
             to_sum_over = nothing
-            for i in sum_inds
+            for i in t.sum_inds
                 if i ∈ delta_inds
                     to_sum_over = i
                     break
