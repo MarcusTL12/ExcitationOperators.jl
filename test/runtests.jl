@@ -187,6 +187,9 @@ using ExcitationOperators
 
     println()
 
-    # @show exval(E(j, j) * E(p, q))
     @show exval(E(j, b) * E(p, q) * E(b, j))
+
+    println("\nTWO ELECTRON EXCITATIONS")
+
+    @show e(p, q, r, s)
 end
