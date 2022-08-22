@@ -2,187 +2,194 @@ using Test
 
 using ExcitationOperators
 
-println("INDICES:")
+@time begin
+    println("INDICES:")
 
-@show Int.([vir, gen, occ])
+    @show Int.([vir, gen, occ])
 
-p = ind(gen, "p")
-q = ind(gen, "q")
-r = ind(gen, "r")
-s = ind(gen, "s")
-i = ind(occ, "i")
-j = ind(occ, "j")
-k = ind(occ, "k")
-l = ind(occ, "l")
-a = ind(vir, "a")
-b = ind(vir, "b")
-c = ind(vir, "c")
-d = ind(vir, "d")
+    p = ind(gen, "p")
+    q = ind(gen, "q")
+    r = ind(gen, "r")
+    s = ind(gen, "s")
+    i = ind(occ, "i")
+    j = ind(occ, "j")
+    k = ind(occ, "k")
+    l = ind(occ, "l")
+    a = ind(vir, "a")
+    b = ind(vir, "b")
+    c = ind(vir, "c")
+    d = ind(vir, "d")
 
-@show i, j, a, p
-@show i < a
-@show i > a
-@show i <= a
-@show i >= a
-@show i > j
+    @show i, j, a, p
+    @show i < a
+    @show i > a
+    @show i <= a
+    @show i >= a
+    @show i > j
 
-println("\nEXCITATION OPERATORS:")
+    println("\nEXCITATION OPERATORS:")
 
-Eai = E(a, i)
-Epj = E(p, j)
+    Eai = E(a, i)
+    Epj = E(p, j)
 
-@show Eai, Epj
+    @show Eai, Epj
 
-println("\nKROENECKER DELTA:")
+    println("\nKROENECKER DELTA:")
 
-d1 = δ(p, i)
-d2 = δ(i, p)
-d3 = δ(a, i)
+    d1 = δ(p, i)
+    d2 = δ(i, p)
+    d3 = δ(a, i)
 
-@show d1, d2, d3
-@show d1 == d2
-@show d1 > d2
-@show d2 >= d1
+    @show d1, d2, d3
+    @show d1 == d2
+    @show d1 > d2
+    @show d2 >= d1
 
-println("\nTENSORS:")
+    println("\nTENSORS:")
 
-hpq = real_tensor("h", p, q)
-hrs = real_tensor("h", r, s)
-gpqrs = real_tensor("g", p, q, r, s)
+    hpq = real_tensor("h", p, q)
+    hrs = real_tensor("h", r, s)
+    gpqrs = real_tensor("g", p, q, r, s)
 
-@show hpq hrs gpqrs
+    @show hpq hrs gpqrs
 
-println("\nPRODUCTS:")
+    println("\nPRODUCTS:")
 
-dd = d1 * d2
+    dd = d1 * d2
 
-@show dd
+    @show dd
 
-dd *= Epj
+    dd *= Epj
 
-@show dd
+    @show dd
 
-dd *= Eai
+    dd *= Eai
 
-@show dd
+    @show dd
 
-@show dd'
+    @show dd'
 
-@show 3dd
+    @show 3dd
 
-dd2 = d2 * E(i, j)
+    dd2 = d2 * E(i, j)
 
-@show dd2
+    @show dd2
 
-@show E(i, j) * 0
+    @show E(i, j) * 0
 
-@show E(p, q) * 3
+    @show E(p, q) * 3
 
-@show E(p, q) * hpq
-@show E(p, q) * E(r, s) * gpqrs
-@show -E(p, q) * E(r, s) * δ(q, r) * gpqrs
-@show hpq * gpqrs
-@show hrs * gpqrs
+    @show E(p, q) * hpq
+    @show E(p, q) * E(r, s) * gpqrs
+    @show -E(p, q) * E(r, s) * δ(q, r) * gpqrs
+    @show hpq * gpqrs
+    @show hrs * gpqrs
 
-println("\nSUMS:")
+    println("\nSUMS:")
 
-@show E(i, j) + 0
+    @show E(i, j) + 0
 
-dd3 = dd - dd2
+    dd3 = dd - dd2
 
-@show dd3
+    @show dd3
 
-dd4 = dd3 + E(a, p)
+    dd4 = dd3 + E(a, p)
 
-@show dd4
+    @show dd4
 
-dd5 = gpqrs * δ(p, a) - E(j, i) * hpq
+    dd5 = gpqrs * δ(p, a) - E(j, i) * hpq
 
-@show dd5
-@show -dd5' + 2 // 3
+    @show dd5
+    @show -dd5' + 2 // 3
 
-@show (3 + δ(i, j) * E(a, b) - 2 // 3 * E(p, q)) * (3 * δ(p, i) - E(q, j))
+    @show (3 + δ(i, j) * E(a, b) - 2 // 3 * E(p, q)) * (3 * δ(p, i) - E(q, j))
 
-println("\nCOMMUTATORS:")
+    println("\nCOMMUTATORS:")
 
-@show comm(E(p, q), E(a, i))
-@show comm(E(i, a), E(b, j))
-@show comm(E(i, a), E(j, b))
-@show comm(E(i, a), E(a, j))
+    @show comm(E(p, q), E(a, i))
+    @show comm(E(i, a), E(b, j))
+    @show comm(E(i, a), E(j, b))
+    @show comm(E(i, a), E(a, j))
 
-println()
+    println()
 
-@show comm(E(i, a), E(p, q) * E(b, j))
-@show comm(E(i, a) * E(p, q), E(b, j))
-@show comm(E(i, a) * E(p, q), E(a, i) * E(b, j))
+    @show comm(E(i, a), E(p, q) * E(b, j))
+    @show comm(E(i, a) * E(p, q), E(b, j))
+    @show comm(E(i, a) * E(p, q), E(a, i) * E(b, j))
 
-println()
+    println()
 
-@show comm(E(i, a), comm(E(p, q), E(b, j)))
-@show comm(comm(E(i, a), E(p, q)), E(b, j))
+    @show comm(E(i, a), comm(E(p, q), E(b, j)))
+    @show comm(comm(E(i, a), E(p, q)), E(b, j))
 
-println()
+    println()
 
-@show comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l)))
+    @show comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l)))
 
-println("\nSIMPLE SUMMATIONS:")
+    println("\nINDEX SWAPS:")
 
-@show summation(hpq * δ(p, q) * E(p, q), p)
-@show summation(hpq * δ(p, a) * E(q, i), i)
+    @show tmp = hpq * E(i, p) * E(q, j)
+    @show ExcitationOperators.exchange_index(tmp, [p => c, q => d])
 
-println()
-@show tmp = hpq * comm(E(i, a), E(p, q) * E(b, j))
-@show summation(tmp, [p, q])
+    println("\nSIMPLE SUMMATIONS:")
 
-println()
-@show summation(δ(a, p) * δ(i, q) * E(a, i), [p, q])
-@show summation(δ(a, p) * δ(i, q) * E(a, i), [a, i])
+    @show summation(hpq * δ(p, q) * E(p, q), p)
+    @show summation(hpq * δ(p, a) * E(q, i), i)
 
-println()
-@show h = summation(hpq * E(p, q), [p, q])
-@show tai = real_tensor("t", a, i)
-@show T1 = summation(tai * E(a, i), [a, i])
-@show comm(h, T1)
+    println()
+    @show tmp = hpq * comm(E(i, a), E(p, q) * E(b, j))
+    @show summation(tmp, [p, q])
 
-println()
-@show summation(comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l))),
-    [p, q])
+    println()
+    @show summation(δ(a, p) * δ(i, q) * E(a, i), [p, q])
+    @show summation(δ(a, p) * δ(i, q) * E(a, i), [a, i])
 
-# println("\nEXPECTATION VALUES:")
-# @show exval(E(p, q))
-# @show exval(E(a, q))
-# @show exval(E(p, i))
+    println()
+    @show h = summation(hpq * E(p, q), [p, q])
+    @show tai = real_tensor("t", a, i)
+    @show T1 = summation(tai * E(a, i), [a, i])
+    @show comm(h, T1)
 
-# println()
+    println()
+    @show summation(comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l))),
+        [p, q])
 
-# ex1 = exval(δ(a, b) * E(p, q) * E(r, s))
+    println("\nEXPECTATION VALUES:")
+    @show exval(E(p, q))
+    @show exval(E(a, q))
+    @show exval(E(p, i))
 
-# @show ex1
+    # println()
 
-# ex2 = ex1 * exval(E(p, q))
+    # ex1 = exval(δ(a, b) * E(p, q) * E(r, s))
 
-# @show ex2
+    # @show ex1
 
-# @show exval(E(p, q)) * exval(E(p, q))
-# @show exval(E(r, s)) * exval(E(p, q))
+    # ex2 = ex1 * exval(E(p, q))
 
-# @show exval(E(p, q) * Tensor2("h", p, q))
-# @show exval(E(p, q) * E(r, s) * Tensor4("g", p, q, r, s))
+    # @show ex2
 
-# println("\nEXPECTATION SUMS:")
+    # @show exval(E(p, q)) * exval(E(p, q))
+    # @show exval(E(r, s)) * exval(E(p, q))
 
-# @show -ex1
-# @show 3ex2
+    # @show exval(E(p, q) * Tensor2("h", p, q))
+    # @show exval(E(p, q) * E(r, s) * Tensor4("g", p, q, r, s))
 
-# @show ex1 - 3
-# @show ex2 - ex1
+    # println("\nEXPECTATION SUMS:")
 
-# @show ex2 - δ(i, j)
+    # @show -ex1
+    # @show 3ex2
 
-# println()
+    # @show ex1 - 3
+    # @show ex2 - ex1
 
-# @show exval(comm(E(i, a), comm(E(p, q), E(b, j))))
+    # @show ex2 - δ(i, j)
 
-# println()
+    # println()
 
-# @show exval(comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l))))
+    # @show exval(comm(E(i, a), comm(E(p, q), E(b, j))))
+
+    # println()
+
+    # @show exval(comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l))))
+end

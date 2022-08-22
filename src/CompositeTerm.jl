@@ -221,3 +221,29 @@ function get_nonop(t::CompositeTerm{T}) where {T<:Number}
         t.tensors,
         ExcitationOperator[])
 end
+
+# Exchanging indices
+
+function exchange_index(t::CompositeTerm{T}, from::MOIndex, to::MOIndex) where
+{T<:Number}
+    sum_inds = SortedSet([i == from ? to : i for i in t.sum_inds])
+
+    deltas = SortedSet{KroeneckerDelta}()
+    for d in t.deltas
+        nd = exchange_index(d, from, to)
+        if nd isa KroeneckerDelta
+            push!(deltas, nd)
+        elseif iszero(nd)
+            return CompositeTerm(zero(A))
+        end
+    end
+
+    tensors = Tensor[exchange_index(ten, from, to) for ten in t.tensors]
+    operators = [exchange_index(o, from, to) for o in t.operators]
+
+    CompositeTerm(t.scalar, sum_inds, deltas, tensors, operators)
+end
+
+function exchange_index(t::CompositeTerm{T}, mapping) where {T<:Number}
+    foldl((acc, (from, to)) -> exchange_index(acc, from, to), mapping; init=t)
+end

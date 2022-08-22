@@ -10,5 +10,6 @@ include("CompositeTerm.jl")
 include("SumType.jl")
 include("Commutator.jl")
 include("Summation.jl")
+include("ExpectationValuie.jl")
 
 end # module
