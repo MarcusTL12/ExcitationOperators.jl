@@ -125,6 +125,14 @@ println()
 
 @show comm(E(i, a) * E(j, b), comm(E(p, q), E(c, k) * E(d, l)))
 
+println("\nSIMPLE SUMMATIONS:")
+
+@show summation(hpq * δ(p, q) * E(p, q), p)
+
+println()
+@show tmp = hpq * comm(E(i, a), E(p, q) * E(b, j))
+@show summation(tmp, Set([p, q]))
+
 # println("\nEXPECTATION VALUES:")
 # @show exval(E(p, q))
 # @show exval(E(a, q))

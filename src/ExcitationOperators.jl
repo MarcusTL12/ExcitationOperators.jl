@@ -9,5 +9,6 @@ include("Tensor.jl")
 include("CompositeTerm.jl")
 include("SumType.jl")
 include("Commutator.jl")
+include("Summation.jl")
 
 end # module
