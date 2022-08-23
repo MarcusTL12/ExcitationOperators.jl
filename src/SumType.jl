@@ -179,3 +179,10 @@ function combine_summation(a::SumType{T}) where {T<:Number}
     end
     comb
 end
+
+export simplify
+
+function simplify(a::Union{CompositeTerm{A},SumType{A}}) where {A<:Number}
+    a |> cleanup_indices |> split_summation |>
+    cleanup_indices |> combine_summation
+end

@@ -424,3 +424,7 @@ function combine_summation(a::CompositeTerm{A}, b::CompositeTerm{B}) where
         end
     end
 end
+
+function combine_summation(a::CompositeTerm{A}) where {A<:Number}
+    a
+end
