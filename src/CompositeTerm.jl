@@ -208,6 +208,14 @@ end
 
 function Base.:*(a::CompositeTerm{A}, b::CompositeTerm{B}) where
 {A<:Number,B<:Number}
+    common_sum_inds = intersect(a.sum_inds, b.sum_inds)
+
+    ex_table_a = [i => ind(i.o, i.n * "₁") for i in common_sum_inds]
+    ex_table_b = [i => ind(i.o, i.n * "₂") for i in common_sum_inds]
+
+    a = exchange_index(a, ex_table_a)
+    b = exchange_index(b, ex_table_b)
+
     CompositeTerm(
         a.scalar * b.scalar,
         union(a.sum_inds, b.sum_inds),
@@ -294,35 +302,13 @@ export cleanup_indices
 
 function cleanup_indices(
     t::CompositeTerm{T};
-    gen_queue=["p", "q", "r", "s"],
-    occ_queue=["i", "j", "k", "l"],
-    vir_queue=["a", "b", "c", "d"]
+    gen_queue=["p", "q", "r", "s", "t", "u", "v", "w"],
+    occ_queue=["i", "j", "k", "l", "m", "n"],
+    vir_queue=["a", "b", "c", "d", "e", "f"]
 ) where {T<:Number}
     t = check_general_indices(t)
 
-    all_inds = SortedSet{MOIndex}()
-
-    for i in t.sum_inds
-        push!(all_inds, i)
-    end
-
-    for d in t.deltas
-        push!(all_inds, d.p)
-        push!(all_inds, d.q)
-    end
-
-    for t in t.tensors
-        for i in get_indices(t)
-            push!(all_inds, i)
-        end
-    end
-
-    for o in t.operators
-        push!(all_inds, o.p)
-        push!(all_inds, o.q)
-    end
-
-    tmp_ex_table = [i => ind(i.o, i.n * "t") for i in all_inds]
+    tmp_ex_table = [i => ind(i.o, i.n * "t") for i in t.sum_inds]
 
     t = exchange_index(t, tmp_ex_table)
 

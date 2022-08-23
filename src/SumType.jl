@@ -123,9 +123,9 @@ end
 
 function cleanup_indices(
     s::SumType{T};
-    gen_queue=["p", "q", "r", "s"],
-    occ_queue=["i", "j", "k", "l"],
-    vir_queue=["a", "b", "c", "d"]
+    gen_queue=["p", "q", "r", "s", "t", "u", "v", "w"],
+    occ_queue=["i", "j", "k", "l", "m", "n"],
+    vir_queue=["a", "b", "c", "d", "e", "f"]
 ) where {T<:Number}
     sum(cleanup_indices(
         t;

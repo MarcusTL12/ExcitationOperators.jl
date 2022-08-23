@@ -195,18 +195,41 @@ using ExcitationOperators.BasicStuff.StandardOperators
 
     println()
 
-    @show exval(summation(gpqrs * e(p, q, r, s), [p, q, r, s]))
+    @show tmp = exval(summation(gpqrs * e(p, q, r, s), [p, q, r, s]))
 
     println()
 
-    @show tmp = exval(comm(E(i, a), comm(E(p, q), E(b, j))))
     @show cleanup_indices(tmp)
 
     println()
 
-    @show tmp = g * g
-    @show tmp = exval(tmp)
+    @show tmp = exval(H)
+
     println()
+
+    @show cleanup_indices(tmp)
+
+    println("\nCAN WE MULTIPLY SUMMATIONS NOW?\n")
+
+    @show t1 = summation(hpq, [p, q])
+    @show t2 = summation(hpq, [q, r])
+
+    @show t3 = t1 * t2
+
+    @show cleanup_indices(t3)
+
+    println()
+
+    @show tmp = h * h
+    @show cleanup_indices(tmp)
+    @show cleanup_indices(exval(tmp))
+
+    println()
+
+    @show tmp = g * g
+
+    println()
+
     @show cleanup_indices(tmp)
 
     println()
