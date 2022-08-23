@@ -148,7 +148,8 @@ using ExcitationOperators.BasicStuff.StandardOperators
 
     println()
 
-    @show exval(comm(h, T1))
+    @show tmp = exval(comm(h, T1))
+    @show cleanup_indices(tmp)
 
     println()
 
