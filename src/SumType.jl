@@ -109,3 +109,23 @@ end
 function Base.adjoint(a::SumType{A}) where {A<:Number}
     SumType(adjoint.(a.terms))
 end
+
+# Index cleanup
+
+function check_general_indices(s::SumType{T}) where {T<:Number}
+    sum(check_general_indices(t) for t in s.terms)
+end
+
+function cleanup_indices(
+    s::SumType{T};
+    gen_queue=["p", "q", "r", "s"],
+    occ_queue=["i", "j", "k", "l"],
+    vir_queue=["a", "b", "c", "d"]
+) where {T<:Number}
+    sum(cleanup_indices(
+        t;
+        gen_queue=copy(gen_queue),
+        occ_queue=copy(occ_queue),
+        vir_queue=copy(vir_queue)
+    ) for t in s.terms)
+end

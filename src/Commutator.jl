@@ -20,7 +20,9 @@ function comm(a::ExcitationOperator, b::Vector{ExcitationOperator})
         comm(a, b[1]) * CompositeTerm(b[2])
     else
         sum(
-            prod(b[1:i-1]) * comm(a, b[i]) * prod(b[i+1:end])
+            prod(CompositeTerm, b[1:i-1]; init=CompositeTerm(1)) *
+            comm(a, b[i]) *
+            prod(CompositeTerm, b[i+1:end]; init=CompositeTerm(1))
             for i in eachindex(b)
         )
     end
@@ -34,7 +36,9 @@ function comm(a::Vector{ExcitationOperator}, b::Vector{ExcitationOperator})
         comm(a[1], b) * CompositeTerm(a[2])
     else
         sum(
-            prod(a[1:i-1]) * comm(a[i], b) * prod(a[i+1:end])
+            prod(CompositeTerm, a[1:i-1]; init=CompositeTerm(1)) *
+            comm(a[i], b) *
+            prod(CompositeTerm, a[i+1:end]; init=CompositeTerm(1))
             for i in eachindex(a)
         )
     end

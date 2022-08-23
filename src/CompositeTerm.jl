@@ -183,6 +183,8 @@ CompositeTerm(operators::Vector{ExcitationOperator}) = CompositeTerm(
     operators
 )
 
+# Base.one(::Type{ExcitationOperator}) = CompositeTerm(0)
+
 # Make constructors for types to make CompositeTerm the external interface type
 
 export E, δ, real_tensor, e
@@ -262,4 +264,82 @@ end
 
 function exchange_index(t::CompositeTerm{T}, mapping) where {T<:Number}
     foldl((acc, (from, to)) -> exchange_index(acc, from, to), mapping; init=t)
+end
+
+# Index cleanup
+
+function check_general_indices(t::CompositeTerm{T}) where {T<:Number}
+    exchange_table = Pair{MOIndex,MOIndex}[]
+    for d in t.deltas
+        if d.p.o == gen && d.q.o != gen
+            new_ind = if d.q.o == occ
+                make_occ(d.p)
+            else
+                make_vir(d.p)
+            end
+            push!(exchange_table, d.p => new_ind)
+        elseif d.p.o != gen && d.q.o == gen
+            new_ind = if d.p.o == occ
+                make_occ(d.q)
+            else
+                make_vir(d.q)
+            end
+            push!(exchange_table, d.q => new_ind)
+        end
+    end
+
+    exchange_index(t, exchange_table)
+end
+
+export cleanup_indices
+
+function cleanup_indices(
+    t::CompositeTerm{T};
+    gen_queue=["p", "q", "r", "s"],
+    occ_queue=["i", "j", "k", "l"],
+    vir_queue=["a", "b", "c", "d"]
+) where {T<:Number}
+    t = check_general_indices(t)
+
+    all_inds = SortedSet{MOIndex}()
+
+    for i in t.sum_inds
+        push!(all_inds, i)
+    end
+
+    for d in t.deltas
+        push!(all_inds, d.p)
+        push!(all_inds, d.q)
+    end
+
+    for t in t.tensors
+        for i in get_indices(t)
+            push!(all_inds, i)
+        end
+    end
+
+    for o in t.operators
+        push!(all_inds, o.p)
+        push!(all_inds, o.q)
+    end
+
+    tmp_ex_table = [i => ind(i.o, i.n * "t") for i in all_inds]
+
+    t = exchange_index(t, tmp_ex_table)
+
+    ex_table = Pair{MOIndex,MOIndex}[]
+
+    for (_, i) in tmp_ex_table
+        new_ind = if i.o == gen
+            ind(gen, popfirst!(gen_queue))
+        elseif i.o == occ
+            ind(occ, popfirst!(occ_queue))
+        else
+            ind(vir, popfirst!(vir_queue))
+        end
+
+        push!(ex_table, i => new_ind)
+    end
+
+    exchange_index(t, ex_table)
 end

@@ -132,7 +132,7 @@ using ExcitationOperators.BasicStuff.StandardOperators
     @show summation(δ(a, p) * δ(i, q) * E(a, i), [a, i])
 
     println()
-    @show h = summation(hpq * E(p, q), [p, q])
+    @show h
     @show tai = real_tensor("t", a, i)
     @show T1 = summation(tai * E(a, i), [a, i])
     @show comm(h, T1)
@@ -196,6 +196,18 @@ using ExcitationOperators.BasicStuff.StandardOperators
     println()
 
     @show exval(summation(gpqrs * e(p, q, r, s), [p, q, r, s]))
+
+    println()
+
+    @show tmp = exval(comm(E(i, a), comm(E(p, q), E(b, j))))
+    @show cleanup_indices(tmp)
+
+    println()
+
+    @show tmp = g * g
+    @show tmp = exval(tmp)
+    println()
+    @show cleanup_indices(tmp)
 
     println()
 end
