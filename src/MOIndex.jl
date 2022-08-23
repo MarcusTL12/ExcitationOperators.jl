@@ -29,5 +29,7 @@ function make_vir(i::MOIndex)
     end
 end
 
-# TODO: make is_occ, is_gen and is_occ methods
-# and refactor code to make use of them
+# TODO: refactor code to use these
+isgen(i::MOIndex) = i.o == gen
+isvir(i::MOIndex) = i.o == vir
+isocc(i::MOIndex) = i.o == occ

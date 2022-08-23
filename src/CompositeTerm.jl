@@ -182,7 +182,7 @@ CompositeTerm(operators::Vector{ExcitationOperator}) = CompositeTerm(
     operators
 )
 
-# Base.one(::Type{ExcitationOperator}) = CompositeTerm(0)
+Base.zero(::Type{CompositeTerm{T}}) where {T<:Number} = CompositeTerm(zero(T))
 
 # Make constructors for types to make CompositeTerm the external interface type
 
@@ -308,6 +308,34 @@ function cleanup_indices(
 ) where {T<:Number}
     t = check_general_indices(t)
 
+    gen_queue = [ind(gen, n) for n in gen_queue]
+    occ_queue = [ind(occ, n) for n in occ_queue]
+    vir_queue = [ind(vir, n) for n in vir_queue]
+
+    nonsum_inds = Set{MOIndex}()
+
+    for d in t.deltas
+        push!(nonsum_inds, d.p)
+        push!(nonsum_inds, d.q)
+    end
+
+    for t in t.tensors
+        for i in get_indices(t)
+            push!(nonsum_inds, i)
+        end
+    end
+
+    for o in t.operators
+        push!(nonsum_inds, o.p)
+        push!(nonsum_inds, o.q)
+    end
+
+    setdiff!(nonsum_inds, t.sum_inds)
+
+    setdiff!(gen_queue, nonsum_inds)
+    setdiff!(occ_queue, nonsum_inds)
+    setdiff!(vir_queue, nonsum_inds)
+
     tmp_ex_table = [i => ind(i.o, i.n * "t") for i in t.sum_inds]
 
     t = exchange_index(t, tmp_ex_table)
@@ -316,11 +344,11 @@ function cleanup_indices(
 
     for (_, i) in tmp_ex_table
         new_ind = if i.o == gen
-            ind(gen, popfirst!(gen_queue))
+            popfirst!(gen_queue)
         elseif i.o == occ
-            ind(occ, popfirst!(occ_queue))
+            popfirst!(occ_queue)
         else
-            ind(vir, popfirst!(vir_queue))
+            popfirst!(vir_queue)
         end
 
         push!(ex_table, i => new_ind)
@@ -349,5 +377,50 @@ function split_summation(t::CompositeTerm{T}) where {T<:Number}
         t_vir = exchange_index(t, gen_ind, make_vir(gen_ind))
 
         split_summation(t_occ) + split_summation(t_vir)
+    end
+end
+
+
+# Experimental combining of sums to simplify. Tries to identify whether the two
+# terms are similar except for one summation index that is occupied in one sum
+# and virtual in the other, then combines them to a single sum
+export combine_summation
+
+subscript(i) = join(Char(0x2080 + d) for d in reverse!(digits(i)))
+
+function make_comb_ind_func()
+    counter = 0
+    function make_comb_ind()
+        counter += 1
+        ind(gen, "ζ" * subscript(counter))
+    end
+end
+
+const make_comb_ind = make_comb_ind_func()
+
+function combine_summation(a::CompositeTerm{A}, b::CompositeTerm{B}) where
+{A<:Number,B<:Number}
+    if a.scalar == b.scalar
+        a_has_occ = any(isocc(i) for i in a.sum_inds)
+        a_has_vir = any(isvir(i) for i in a.sum_inds)
+        b_has_occ = any(isocc(i) for i in b.sum_inds)
+        b_has_vir = any(isvir(i) for i in b.sum_inds)
+
+        test_ind = ind(gen, "tₑₛₜ")
+
+        if a_has_occ && b_has_vir || a_has_vir && b_has_occ
+            for i in a.sum_inds, j in b.sum_inds
+                if isocc(i) && isvir(j) || isvir(i) && isocc(j)
+                    a_test = cleanup_indices(exchange_index(a, i, test_ind))
+                    b_test = cleanup_indices(exchange_index(b, j, test_ind))
+
+                    if a_test == b_test
+                        return cleanup_indices(
+                            exchange_index(a, i, make_comb_ind())
+                        )
+                    end
+                end
+            end
+        end
     end
 end

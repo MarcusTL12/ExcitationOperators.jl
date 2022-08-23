@@ -245,4 +245,9 @@ using ExcitationOperators.BasicStuff.StandardOperators
     @show cleanup_indices(split_summation(exval(H)))
 
     println()
+    
+    @show tmp = cleanup_indices(split_summation(h))
+    @show combine_summation(tmp)
+
+    println()
 end

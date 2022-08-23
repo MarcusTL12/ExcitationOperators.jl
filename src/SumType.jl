@@ -153,3 +153,29 @@ end
 function split_summation(s::SumType{T}) where {T<:Number}
     sum(split_summation(t) for t in s.terms)
 end
+
+function combine_summation_single_pass(a::SumType{T}) where {T<:Number}
+    terms = copy(a.terms)
+
+    for i in eachindex(terms), j in i+1:length(terms)
+        comb = combine_summation(terms[i], terms[j])
+        if !isnothing(comb)
+            deleteat!(terms, j)
+            deleteat!(terms, i)
+            return (true, comb + sum(terms))
+        end
+    end
+
+    (false, a)
+end
+
+combine_summation_single_pass(a::CompositeTerm{T}) where {T<:Number} =
+    (false, a)
+
+function combine_summation(a::SumType{T}) where {T<:Number}
+    done, comb = combine_summation_single_pass(a)
+    while done
+        done, comb = combine_summation_single_pass(comb)
+    end
+    comb
+end
