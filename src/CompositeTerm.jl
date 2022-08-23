@@ -20,7 +20,6 @@ struct CompositeTerm{T<:Number}
                 ExcitationOperator[]
             )
         else
-
             t = new{T}(n, sum_inds, deltas, sort(tensors), operators)
 
             delta_inds = Set{MOIndex}()
@@ -71,8 +70,8 @@ end
 
 function Base.isless(a::CompositeTerm{A}, b::CompositeTerm{B}) where
 {A<:Number,B<:Number}
-    (a.sum_inds, a.deltas, a.tensors, a.operators, -a.scalar) <
-    (b.sum_inds, b.deltas, b.tensors, b.operators, -b.scalar)
+    (collect(a.sum_inds), collect(a.deltas), a.tensors, a.operators, -a.scalar) <
+    (collect(b.sum_inds), collect(b.deltas), b.tensors, b.operators, -b.scalar)
 end
 
 function Base.show(io::IO, t::CompositeTerm{T}) where {T<:Number}

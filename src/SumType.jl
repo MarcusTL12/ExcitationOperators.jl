@@ -33,6 +33,11 @@ struct SumType{T<:Number}
     end
 end
 
+function Base.:(==)(a::SumType{A}, b::SumType{B}) where
+{A<:Number,B<:Number}
+    a.terms == b.terms
+end
+
 function Base.show(io::IO, s::SumType{T}) where {T<:Number}
     print(io, first(s.terms))
     for t in s.terms[2:end]

@@ -22,7 +22,13 @@ function summation(t::CompositeTerm{A}, sum_ind::MOIndex) where {A<:Number}
             end
         end
 
-        new_ind = ind(sum_ind.o, new_ind_n)
+        new_ind_o = old_ind.o
+
+        if sum_ind.o != gen
+            new_ind_o == sum_ind.o
+        end
+
+        new_ind = ind(new_ind_o, new_ind_n)
 
         tensors = copy(t.tensors)
         for i in eachindex(tensors)
