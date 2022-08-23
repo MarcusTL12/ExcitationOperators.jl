@@ -233,5 +233,16 @@ using ExcitationOperators.BasicStuff.StandardOperators
 
     @show cleanup_indices(tmp)
 
+    println("\nATTEMPTED SIMPLIFICATION\n")
+
+    @show tmp = exval(g)
+    @show tmp = cleanup_indices(tmp)
+    @show tmp = split_summation(tmp)
+    @show cleanup_indices(tmp)
+
+    println()
+
+    @show cleanup_indices(split_summation(exval(H)))
+
     println()
 end

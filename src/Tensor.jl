@@ -29,6 +29,21 @@ function Base.isless(a::A, b::B) where {A<:Tensor,B<:Tensor}
     (get_symbol(a), get_indices(a)) < (get_symbol(b), get_indices(b))
 end
 
+function Base.hash(t::T) where {T<:Tensor}
+    hash((get_symbol(t), get_indices(t)))
+end
+
+function Base.hash(v::Vector{Tensor})
+    if isempty(v)
+        hash(314)
+    else
+        h = hash(first(v))
+        for t in v[2:end]
+            h = hash(h * hash(t))
+        end
+        h
+    end
+end
 
 # Basic tensor implementation:
 

@@ -328,3 +328,26 @@ function cleanup_indices(
 
     exchange_index(t, ex_table)
 end
+
+# Experimental splitting for simplification. Splits sum over general indices
+# into one sum over occupied and one over virtual.
+export split_summation
+
+function split_summation(t::CompositeTerm{T}) where {T<:Number}
+    gen_ind = nothing
+    for i in t.sum_inds
+        if i.o == gen
+            gen_ind = i
+            break
+        end
+    end
+
+    if isnothing(gen_ind)
+        t
+    else
+        t_occ = exchange_index(t, gen_ind, make_occ(gen_ind))
+        t_vir = exchange_index(t, gen_ind, make_vir(gen_ind))
+
+        split_summation(t_occ) + split_summation(t_vir)
+    end
+end

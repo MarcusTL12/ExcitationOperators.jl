@@ -4,8 +4,8 @@ struct SumType{T<:Number}
     function SumType(terms::Vector{CompositeTerm{T}}) where {T<:Number}
         counter = Dict{
             Tuple{
-                SortedSet{MOIndex},
-                SortedSet{KroeneckerDelta},
+                Vector{MOIndex},
+                Vector{KroeneckerDelta},
                 Vector{Tensor},
                 Vector{ExcitationOperator}
             },
@@ -13,12 +13,12 @@ struct SumType{T<:Number}
         }()
 
         for t in terms
-            k = (t.sum_inds, t.deltas, t.tensors, t.operators)
+            k = (collect(t.sum_inds), collect(t.deltas), t.tensors, t.operators)
             counter[k] = get(counter, k, zero(T)) + t.scalar
         end
 
         terms = [
-            CompositeTerm(s, i, d, t, o)
+            CompositeTerm(s, SortedSet(i), SortedSet(d), t, o)
             for ((i, d, t, o), s) in counter if !iszero(s)
         ]
         sort!(terms)
@@ -31,6 +31,19 @@ struct SumType{T<:Number}
             new{T}(terms)
         end
     end
+end
+
+function Base.hash(k::Tuple{
+    Vector{MOIndex},
+    Vector{KroeneckerDelta},
+    Vector{Tensor},
+    Vector{ExcitationOperator}
+})
+    h = hash(k[1])
+    for i in 2:4
+        h = hash(h * hash(k[i]))
+    end
+    h
 end
 
 function Base.:(==)(a::SumType{A}, b::SumType{B}) where
@@ -133,4 +146,10 @@ function cleanup_indices(
         occ_queue=copy(occ_queue),
         vir_queue=copy(vir_queue)
     ) for t in s.terms)
+end
+
+# Experimental splitting for simplification. Splits sum over general indices
+# into one sum over occupied and one over virtual.
+function split_summation(s::SumType{T}) where {T<:Number}
+    sum(split_summation(t) for t in s.terms)
 end
