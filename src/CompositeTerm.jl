@@ -316,21 +316,37 @@ function cleanup_indices(
     vir_queue = [ind(vir, n) for n in vir_queue]
 
     nonsum_inds = Set{MOIndex}()
+    sorted_sum_inds = MOIndex[]
+
+    function add_sorted_sum_ind(i)
+        if i ∈ t.sum_inds && i ∉ sorted_sum_inds
+            push!(sorted_sum_inds, i)
+        end
+    end
 
     for d in t.deltas
         push!(nonsum_inds, d.p)
         push!(nonsum_inds, d.q)
+        add_sorted_sum_ind(d.p)
+        add_sorted_sum_ind(d.q)
     end
 
     for t in t.tensors
         for i in get_indices(t)
             push!(nonsum_inds, i)
+            add_sorted_sum_ind(i)
         end
     end
 
     for o in t.operators
         push!(nonsum_inds, o.p)
         push!(nonsum_inds, o.q)
+        add_sorted_sum_ind(o.p)
+        add_sorted_sum_ind(o.q)
+    end
+
+    for i in t.sum_inds
+        add_sorted_sum_ind(i)
     end
 
     setdiff!(nonsum_inds, t.sum_inds)
@@ -339,7 +355,7 @@ function cleanup_indices(
     setdiff!(occ_queue, nonsum_inds)
     setdiff!(vir_queue, nonsum_inds)
 
-    tmp_ex_table = [i => ind(i.o, i.n * "t") for i in t.sum_inds]
+    tmp_ex_table = [i => ind(i.o, i.n * "t") for i in sorted_sum_inds]
 
     t = exchange_index(t, tmp_ex_table)
 

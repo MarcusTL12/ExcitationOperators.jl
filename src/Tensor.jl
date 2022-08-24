@@ -82,9 +82,9 @@ struct SymTensor4 <: Tensor
 
     function SymTensor4(symbol, p, q, r, s)
         if (p, q) ≤ (r, s)
-            new(s, p, q, r, s)
+            new(symbol, p, q, r, s)
         else
-            new(s, r, s, p, q)
+            new(symbol, r, s, p, q)
         end
     end
 end
