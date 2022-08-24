@@ -70,3 +70,41 @@ function exchange_index(t::RealTensor, from::MOIndex, to::MOIndex)
     end
     RealTensor(t.symbol, indices)
 end
+
+
+struct SymTensor4 <: Tensor
+    # Implements the particle-exchange symmetry, g_pqrs = g_rspq
+    symbol::String
+    indices::Vector{MOIndex}
+
+    function SymTensor4(s,is)
+        if length(is) == 4
+            if (is[1], is[2]) ≤ (is[3], is[4])
+                new(s,is)
+            else
+                new(s, [is[3], is[4], is[1], is[2]])
+            end
+        else
+            error("Length must be 4")
+        end
+    end
+end
+
+get_symbol(t::SymTensor4) = t.symbol
+get_indices(t::SymTensor4) = t.indices
+Base.adjoint(t::SymTensor4) = t
+
+function exchange_index(t::SymTensor4, i::Int, ind::MOIndex)
+    indices = copy(t.indices)
+    indices[i] = ind
+    SymTensor4(t.symbol, indices)
+end
+
+function exchange_index(t::SymTensor4, from::MOIndex, to::MOIndex)
+    indices = copy(t.indices)
+    is = findall(x -> x == from, indices)
+    for i in is
+        indices[i] = to
+    end
+    SymTensor4(t.symbol, indices)
+end
