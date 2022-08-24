@@ -1,3 +1,5 @@
+export E, e
+
 struct ExcitationOperator
     p::MOIndex
     q::MOIndex
@@ -24,3 +26,8 @@ end
 function exchange_index(o::ExcitationOperator, from::MOIndex, to::MOIndex)
     ExcitationOperator(o.p == from ? to : o.p, o.q == from ? to : o.q)
 end
+
+E(p::MOIndex, q::MOIndex) = CompositeTerm(ExcitationOperator(p, q))
+
+e(p::MOIndex, q::MOIndex, r::MOIndex, s::MOIndex) =
+    E(p, q) * E(r, s) - δ(q, r) * E(p, s)

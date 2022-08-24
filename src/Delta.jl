@@ -33,3 +33,6 @@ end
 function exchange_index(d::KroeneckerDelta, from::MOIndex, to::MOIndex)
     KroeneckerDelta(d.p == from ? to : d.p, d.q == from ? to : d.q)
 end
+
+export δ
+δ(p::MOIndex, q::MOIndex) = CompositeTerm(KroeneckerDelta(p, q))

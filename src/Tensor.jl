@@ -45,65 +45,7 @@ function Base.hash(v::Vector{Tensor})
     end
 end
 
-# Basic tensor implementation:
+# Tensor implementations:
 
-struct RealTensor <: Tensor
-    symbol::String
-    indices::Vector{MOIndex}
-end
-
-get_symbol(t::RealTensor) = t.symbol
-get_indices(t::RealTensor) = t.indices
-Base.adjoint(t::RealTensor) = t
-
-function exchange_index(t::RealTensor, i::Int, ind::MOIndex)
-    indices = copy(t.indices)
-    indices[i] = ind
-    RealTensor(t.symbol, indices)
-end
-
-function exchange_index(t::RealTensor, from::MOIndex, to::MOIndex)
-    indices = copy(t.indices)
-    is = findall(x -> x == from, indices)
-    for i in is
-        indices[i] = to
-    end
-    RealTensor(t.symbol, indices)
-end
-
-
-struct SymTensor4 <: Tensor
-    # Implements the particle-exchange symmetry, g_pqrs = g_rspq
-    symbol::String
-    p::MOIndex
-    q::MOIndex
-    r::MOIndex
-    s::MOIndex
-
-    function SymTensor4(symbol, p, q, r, s)
-        if (p, q) ≤ (r, s)
-            new(symbol, p, q, r, s)
-        else
-            new(symbol, r, s, p, q)
-        end
-    end
-end
-
-get_symbol(t::SymTensor4) = t.symbol
-get_indices(t::SymTensor4) = [t.p, t.q, t.r, t.s]
-Base.adjoint(t::SymTensor4) = t
-
-function exchange_index(t::SymTensor4, i::Int, ind::MOIndex)
-    indices = get_indices(t)
-    indices[i] = ind
-    SymTensor4(t.symbol, indices...)
-end
-
-function exchange_index(t::SymTensor4, from::MOIndex, to::MOIndex)
-    indices = get_indices(t)
-    is = findall(x -> x == from, indices)
-    for i in is
-        indices[i] = to
-    end
-    SymTensor4(t.symbol, indices...)
-end
+include("tensors/RealTensor.jl")
+include("tensors/SymTensor.jl")
