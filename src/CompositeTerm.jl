@@ -186,12 +186,15 @@ Base.zero(::Type{CompositeTerm{T}}) where {T<:Number} = CompositeTerm(zero(T))
 
 # Make constructors for types to make CompositeTerm the external interface type
 
-export E, δ, real_tensor, e
+export E, δ, real_tensor, sym_tensor, e
 
 E(p::MOIndex, q::MOIndex) = CompositeTerm(ExcitationOperator(p, q))
 δ(p::MOIndex, q::MOIndex) = CompositeTerm(KroeneckerDelta(p, q))
 real_tensor(symbol, indices...) =
     CompositeTerm(RealTensor(symbol, collect(indices)))
+
+sym_tensor(symbol, indices...) =
+    CompositeTerm(SymTensor4(symbol, collect(indices)))
 
 e(p::MOIndex, q::MOIndex, r::MOIndex, s::MOIndex) =
     E(p, q) * E(r, s) - δ(q, r) * E(p, s)
