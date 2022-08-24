@@ -194,7 +194,7 @@ real_tensor(symbol, indices...) =
     CompositeTerm(RealTensor(symbol, collect(indices)))
 
 sym_tensor(symbol, indices...) =
-    CompositeTerm(SymTensor4(symbol, collect(indices)))
+    CompositeTerm(SymTensor4(symbol, indices...))
 
 e(p::MOIndex, q::MOIndex, r::MOIndex, s::MOIndex) =
     E(p, q) * E(r, s) - δ(q, r) * E(p, s)
