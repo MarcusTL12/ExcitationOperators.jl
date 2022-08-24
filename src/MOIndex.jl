@@ -13,6 +13,8 @@ Base.isless(p::MOIndex, q::MOIndex) = (p.o, p.n) < (q.o, q.n)
 
 # Utility method for promoting general index to occupied or virtual index
 
+export make_occ, make_vir
+
 function make_occ(i::MOIndex)
     if i.o == gen
         ind(occ, i.n * "ᵒ")
