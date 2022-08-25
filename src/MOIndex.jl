@@ -1,4 +1,4 @@
-export occ, vir, gen, ind
+export occ, vir, gen, ind, make_occ, make_vir
 
 @enum Occupation gen vir occ
 
@@ -12,8 +12,6 @@ ind(o, name) = MOIndex(o, name)
 Base.isless(p::MOIndex, q::MOIndex) = (p.o, p.n) < (q.o, q.n)
 
 # Utility method for promoting general index to occupied or virtual index
-
-export make_occ, make_vir
 
 function make_occ(i::MOIndex)
     if i.o == gen
