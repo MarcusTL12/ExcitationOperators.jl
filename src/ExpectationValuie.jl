@@ -43,13 +43,13 @@ function exval(t::CompositeTerm{T}) where {T<:Number}
                     CompositeTerm(t.operators[i+1:end]))
                 ))
             elseif first(t.operators).q.o == occ
-                exval(CompositeTerm(first(t.operators))) *
-                exval(mul_collide(nonop_part,
-                    CompositeTerm(t.operators[2:end])))
+                mul_collide(exval(CompositeTerm(first(t.operators))),
+                    exval(mul_collide(nonop_part,
+                        CompositeTerm(t.operators[2:end]))))
             elseif last(t.operators).p.o == occ
-                exval(mul_collide(nonop_part,
-                    CompositeTerm(t.operators[1:end-1]))) *
-                exval(CompositeTerm(last(t.operators)))
+                mul_collide(exval(mul_collide(nonop_part,
+                        CompositeTerm(t.operators[1:end-1]))),
+                    exval(CompositeTerm(last(t.operators))))
             else
                 o = first(t.operators)
                 q_occ = make_occ(o.q)
