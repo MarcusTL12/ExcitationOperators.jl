@@ -25,12 +25,12 @@ function comm(a::ExcitationOperator, b::Vector{ExcitationOperator})
         for i in eachindex(b)
             left = CompositeTerm(1)
             for t in b[1:i-1]
-                left = mul_collide(left, t)
+                left = mul_collide(left, CompositeTerm(t))
             end
 
             right = CompositeTerm(1)
             for t in b[1:i-1]
-                right = mul_collide(right, t)
+                right = mul_collide(right, CompositeTerm(t))
             end
 
             mid = comm(a, b[i])
@@ -54,12 +54,12 @@ function comm(a::Vector{ExcitationOperator}, b::Vector{ExcitationOperator})
         for i in eachindex(b)
             left = CompositeTerm(1)
             for t in a[1:i-1]
-                left = mul_collide(left, t)
+                left = mul_collide(left, CompositeTerm(t))
             end
 
             right = CompositeTerm(1)
             for t in a[1:i-1]
-                right = mul_collide(right, t)
+                right = mul_collide(right, CompositeTerm(t))
             end
 
             mid = comm(a[i], b)
