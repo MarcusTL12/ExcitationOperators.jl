@@ -51,7 +51,7 @@ function comm(a::CompositeTerm{A}, b::CompositeTerm{B}) where
     else
         nonop = get_nonop(a) * get_nonop(b)
         op = comm(a.operators, b.operators)
-        nonop * op
+        summation(get_nosum(nonop) * op, nonop.sum_inds)
     end
 end
 
