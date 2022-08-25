@@ -122,6 +122,21 @@ function Base.:*(a::SumType{A}, b::SumType{B}) where {A<:Number,B<:Number}
     sum(t1 * t2 for t1 in a.terms, t2 in b.terms)
 end
 
+function mul_collide(a::CompositeTerm{A}, b::SumType{B}) where
+{A<:Number,B<:Number}
+    SumType([mul_collide(a, t) for t in b.terms])
+end
+
+function mul_collide(a::SumType{A}, b::CompositeTerm{B}) where
+{A<:Number,B<:Number}
+    SumType([mul_collide(t, b) for t in a.terms])
+end
+
+function mul_collide(a::SumType{A}, b::SumType{B}) where
+{A<:Number,B<:Number}
+    sum(mul_collide(t1, t2) for t1 in a.terms, t2 in b.terms)
+end
+
 # Adjoint
 
 function Base.adjoint(a::SumType{A}) where {A<:Number}

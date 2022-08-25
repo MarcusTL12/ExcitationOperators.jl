@@ -184,6 +184,33 @@ CompositeTerm(operators::Vector{ExcitationOperator}) = CompositeTerm(
 
 Base.zero(::Type{CompositeTerm{T}}) where {T<:Number} = CompositeTerm(zero(T))
 
+# Utility for getting all indices as set
+
+function get_all_inds(t::CompositeTerm{T}) where {T<:Number}
+    inds = Set{MOIndex}()
+
+    for i in t.sum_inds
+        push!(inds, i)
+    end
+
+    for d in t.deltas
+        push!(inds, d.p)
+        push!(inds, d.q)
+    end
+
+    for t in t.tensors
+        for i in get_indices(t)
+            push!(inds, i)
+        end
+    end
+
+    for o in t.operators
+        push!(inds, o.p)
+        push!(inds, o.q)
+    end
+
+    inds
+end
 
 # Overloading multiplication
 
@@ -197,10 +224,39 @@ end
 
 function Base.:*(a::CompositeTerm{A}, b::CompositeTerm{B}) where
 {A<:Number,B<:Number}
-    common_sum_inds = intersect(a.sum_inds, b.sum_inds)
+    mul_noncollide(a, b)
+end
 
-    ex_table_a = [i => ind(i.o, i.n * "₁") for i in common_sum_inds]
-    ex_table_b = [i => ind(i.o, i.n * "₂") for i in common_sum_inds]
+function mul_collide(a::CompositeTerm{A}, b::CompositeTerm{B}) where
+    {A<:Number,B<:Number}
+        common_sum_inds = intersect(a.sum_inds, b.sum_inds)
+    
+        ex_table_a = [i => ind(i.o, i.n * "₁") for i in common_sum_inds]
+        ex_table_b = [i => ind(i.o, i.n * "₂") for i in common_sum_inds]
+    
+        a = exchange_index(a, ex_table_a)
+        b = exchange_index(b, ex_table_b)
+    
+        CompositeTerm(
+            a.scalar * b.scalar,
+            union(a.sum_inds, b.sum_inds),
+            union(a.deltas, b.deltas),
+            Tensor[a.tensors; b.tensors],
+            [a.operators; b.operators]
+        )
+    end
+
+# ad-hoc solution to get non-colliding indices when multiplying sum with non-sum
+function mul_noncollide(a::CompositeTerm{A}, b::CompositeTerm{B}) where
+{A<:Number,B<:Number}
+    a_inds = get_all_inds(a)
+    b_inds = get_all_inds(b)
+
+    a_sum_inds_ovlp = intersect(a.sum_inds, b_inds)
+    b_sum_inds_ovlp = intersect(b.sum_inds, a_inds)
+
+    ex_table_a = [i => ind(i.o, i.n * "₁") for i in a_sum_inds_ovlp]
+    ex_table_b = [i => ind(i.o, i.n * "₂") for i in b_sum_inds_ovlp]
 
     a = exchange_index(a, ex_table_a)
     b = exchange_index(b, ex_table_b)
