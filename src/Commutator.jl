@@ -49,6 +49,18 @@ function comm(a::CompositeTerm{A}, b::CompositeTerm{B}) where
     if isempty(a.operators) || isempty(b.operators)
         zero(promote_type(A, B))
     else
+        a_inds = get_all_inds(a)
+        b_inds = get_all_inds(b)
+
+        a_sum_inds_ovlp = intersect(a.sum_inds, b_inds)
+        b_sum_inds_ovlp = intersect(b.sum_inds, a_inds)
+
+        ex_table_a = [i => ind(i.o, i.n * "₁") for i in a_sum_inds_ovlp]
+        ex_table_b = [i => ind(i.o, i.n * "₂") for i in b_sum_inds_ovlp]
+
+        a = exchange_index(a, ex_table_a)
+        b = exchange_index(b, ex_table_b)
+
         nonop = get_nonop(a) * get_nonop(b)
         op = comm(a.operators, b.operators)
         summation(get_nosum(nonop) * op, nonop.sum_inds)
