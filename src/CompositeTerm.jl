@@ -218,27 +218,31 @@ end
 export mul_noncollide
 
 function mul_noncollide(a::CompositeTerm{A}, b::CompositeTerm{B}) where
-    {A<:Number,B<:Number}
-        a_inds = get_all_inds(a)
-        b_inds = get_all_inds(b)
-    
-        a_sum_inds_ovlp = intersect(a.sum_inds, b_inds)
-        b_sum_inds_ovlp = intersect(b.sum_inds, a_inds)
-    
-        ex_table_a = [i => ind(i.o, i.n * "₁") for i in a_sum_inds_ovlp]
-        ex_table_b = [i => ind(i.o, i.n * "₂") for i in b_sum_inds_ovlp]
-    
-        a = exchange_index(a, ex_table_a)
-        b = exchange_index(b, ex_table_b)
-    
-        CompositeTerm(
-            a.scalar * b.scalar,
-            union(a.sum_inds, b.sum_inds),
-            union(a.deltas, b.deltas),
-            Tensor[a.tensors; b.tensors],
-            [a.operators; b.operators]
-        )
-    end
+{A<:Number,B<:Number}
+    a_inds = get_all_inds(a)
+    b_inds = get_all_inds(b)
+
+    a_sum_inds_ovlp = intersect(a.sum_inds, b_inds)
+    b_sum_inds_ovlp = intersect(b.sum_inds, a_inds)
+
+    ex_table_a = [i => ind(i.o, i.n * "₁") for i in a_sum_inds_ovlp]
+    ex_table_b = [i => ind(i.o, i.n * "₂") for i in b_sum_inds_ovlp]
+
+    a = exchange_index(a, ex_table_a)
+    b = exchange_index(b, ex_table_b)
+
+    CompositeTerm(
+        a.scalar * b.scalar,
+        union(a.sum_inds, b.sum_inds),
+        union(a.deltas, b.deltas),
+        Tensor[a.tensors; b.tensors],
+        [a.operators; b.operators]
+    )
+end
+
+function mul_noncollide(a, b, rest...)
+    mul_noncollide(a, mul_noncollide(b, rest...))
+end
 
 # Negating scalar
 
