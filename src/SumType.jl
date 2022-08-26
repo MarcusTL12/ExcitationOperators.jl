@@ -137,16 +137,16 @@ end
 
 
 function mul_noncollide(a::SumType{A}, b::CompositeTerm{B}) where
-    {A<:Number,B<:Number}
-        sum(mul_noncollide(t, b) for t in a.terms)
-    end
-    
-    function mul_noncollide(a::CompositeTerm{A}, b::SumType{B}) where
-    {A<:Number,B<:Number}
-        sum(mul_noncollide(a, t) for t in b.terms)
-    end
-    
-    function mul_noncollide(a::SumType{A}, b::SumType{B}) where
-    {A<:Number,B<:Number}
-        sum(mul_noncollide(t1, t2) for t1 in a.terms, t2 in b.terms)
-    end
+{A<:Number,B<:Number}
+    sum(mul_noncollide(t, b) for t in a.terms)
+end
+
+function mul_noncollide(a::CompositeTerm{A}, b::SumType{B}) where
+{A<:Number,B<:Number}
+    sum(mul_noncollide(a, t) for t in b.terms)
+end
+
+function mul_noncollide(a::SumType{A}, b::SumType{B}) where
+{A<:Number,B<:Number}
+    sum(mul_noncollide(t1, t2) for t1 in a.terms, t2 in b.terms)
+end
