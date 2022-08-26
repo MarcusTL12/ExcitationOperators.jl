@@ -267,8 +267,8 @@ function mul_noncollide(a::CompositeTerm{A}, b::CompositeTerm{B}) where
     )
 end
 
-function mul_noncollide(a, b, rest...)
-    mul_noncollide(a, mul_noncollide(b, rest...))
+function mul_noncollide(a, b, c, rest...)
+    mul_noncollide(a, mul_noncollide(b, c, rest...))
 end
 
 # Negating scalar
