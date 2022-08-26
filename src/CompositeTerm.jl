@@ -184,6 +184,33 @@ CompositeTerm(operators::Vector{ExcitationOperator}) = CompositeTerm(
 
 Base.zero(::Type{CompositeTerm{T}}) where {T<:Number} = CompositeTerm(zero(T))
 
+# Utility for getting all indices as set
+
+function get_all_inds(t::CompositeTerm{T}) where {T<:Number}
+    inds = Set{MOIndex}()
+
+    for i in t.sum_inds
+        push!(inds, i)
+    end
+
+    for d in t.deltas
+        push!(inds, d.p)
+        push!(inds, d.q)
+    end
+
+    for t in t.tensors
+        for i in get_indices(t)
+            push!(inds, i)
+        end
+    end
+
+    for o in t.operators
+        push!(inds, o.p)
+        push!(inds, o.q)
+    end
+
+    inds
+end
 
 # Overloading multiplication
 
