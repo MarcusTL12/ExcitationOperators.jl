@@ -51,7 +51,7 @@ function comm(a::Vector{ExcitationOperator}, b::Vector{ExcitationOperator})
     else
         acc = CompositeTerm(0)
 
-        for i in eachindex(b)
+        for i in eachindex(a)
             left = CompositeTerm(1)
             for t in a[1:i-1]
                 left = mul_collide(left, CompositeTerm(t))
