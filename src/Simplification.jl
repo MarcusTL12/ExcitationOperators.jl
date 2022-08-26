@@ -4,8 +4,8 @@ export cleanup_indices, split_summation, combine_summation, simplify,
 function cleanup_indices(
     t::CompositeTerm{T};
     gen_queue=["p", "q", "r", "s", "t", "u", "v", "w"],
-    occ_queue=["i", "j", "k", "l", "m", "n"],
-    vir_queue=["a", "b", "c", "d", "e", "f"]
+    occ_queue=["i", "j", "k", "l", "m", "n", "o", "π"],
+    vir_queue=["a", "b", "c", "d", "e", "f", "g", "h"]
 ) where {T<:Number}
     t = check_general_indices(t)
 
