@@ -25,7 +25,7 @@ function summation(t::CompositeTerm{A}, sum_ind::MOIndex) where {A<:Number}
         new_ind_o = old_ind.o
 
         if sum_ind.o != gen
-            new_ind_o == sum_ind.o
+            new_ind_o = sum_ind.o
         end
 
         new_ind = ind(new_ind_o, new_ind_n)
