@@ -227,6 +227,9 @@ function Base.:*(a::CompositeTerm{A}, b::CompositeTerm{B}) where
     mul_noncollide(a, b)
 end
 
+mul_collide(a::A, b) where {A<:Number} = a * b
+mul_collide(a, b::B) where {B<:Number} = a * b
+
 function mul_collide(a::CompositeTerm{A}, b::CompositeTerm{B}) where
     {A<:Number,B<:Number}
         common_sum_inds = intersect(a.sum_inds, b.sum_inds)
