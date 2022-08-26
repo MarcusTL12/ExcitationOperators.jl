@@ -307,7 +307,7 @@ function exchange_index(t::CompositeTerm{T}, from::MOIndex, to::MOIndex) where
         if nd isa KroeneckerDelta
             push!(deltas, nd)
         elseif iszero(nd)
-            return CompositeTerm(zero(A))
+            return CompositeTerm(zero(T))
         end
     end
 
