@@ -77,7 +77,7 @@ end
 # Experimental splitting for simplification. Splits sum over general indices
 # into one sum over occupied and one over virtual.
 
-function split_summation(t::CompositeTerm{T}) where {T<:Number}
+function split_summation_kernel(t::CompositeTerm{T}) where {T<:Number}
     gen_ind = nothing
     for i in t.sum_inds
         if i.o == gen
@@ -87,13 +87,22 @@ function split_summation(t::CompositeTerm{T}) where {T<:Number}
     end
 
     if isnothing(gen_ind)
-        t
+        t, false
     else
         t_occ = exchange_index(t, gen_ind, make_occ(gen_ind))
         t_vir = exchange_index(t, gen_ind, make_vir(gen_ind))
 
-        split_summation(t_occ) + split_summation(t_vir)
+        split_summation(t_occ) + split_summation(t_vir), true
     end
+end
+
+function split_summation(t::Union{CompositeTerm{T},SumType{T}}) where
+{T<:Number}
+    keep_going = true
+    while keep_going
+        t, keep_going = split_summation_kernel(t)
+    end
+    t
 end
 
 
@@ -160,8 +169,15 @@ end
 
 # Experimental splitting for simplification. Splits sum over general indices
 # into one sum over occupied and one over virtual.
-function split_summation(s::SumType{T}) where {T<:Number}
-    sum(split_summation(t) for t in s.terms)
+function split_summation_kernel(s::SumType{T}) where {T<:Number}
+    su = CompositeTerm(zero(T))
+    did_simplify = false
+    for t in s.terms
+        ts, b = split_summation_kernel(t)
+        su += ts
+        did_simplify |= b
+    end
+    su, did_simplify
 end
 
 function combine_summation_single_pass(a::SumType{T}) where {T<:Number}
@@ -239,3 +255,104 @@ function sort_sum_sym_tensor(s::SumType{T}) where {T<:Number}
     sum(sort_sum_sym_tensor(t) for t in s.terms)
 end
 
+
+# Splitting and combining non-sum indices. Ment for manual use
+
+export split_term
+function split_term_kernel(t::CompositeTerm{T}) where {T<:Number}
+    gen_ind = nothing
+    for i in get_all_inds(t)
+        if i.o == gen
+            gen_ind = i
+            break
+        end
+    end
+
+    if isnothing(gen_ind)
+        t, false
+    else
+        t_occ = exchange_index(t, gen_ind, make_occ(gen_ind))
+        t_vir = exchange_index(t, gen_ind, make_vir(gen_ind))
+
+        split_summation(t_occ) + split_summation(t_vir), true
+    end
+end
+
+function split_term_kernel(s::SumType{T}) where {T<:Number}
+    su = CompositeTerm(zero(T))
+    did_simplify = false
+    for t in s.terms
+        ts, b = split_term_kernel(t)
+        su += ts
+        did_simplify |= b
+    end
+    su, did_simplify
+end
+
+function split_term(t::Union{CompositeTerm{T},SumType{T}}) where
+{T<:Number}
+    keep_going = true
+    while keep_going
+        t, keep_going = split_term_kernel(t)
+    end
+    t
+end
+
+export combine_occvir_terms
+
+function combine_occvir_terms(a::CompositeTerm{A}, b::CompositeTerm{B}) where
+{A<:Number,B<:Number}
+    if a.scalar == b.scalar
+        a_has_occ = any(isocc(i) for i in get_all_inds(a))
+        a_has_vir = any(isvir(i) for i in get_all_inds(a))
+        b_has_occ = any(isocc(i) for i in get_all_inds(b))
+        b_has_vir = any(isvir(i) for i in get_all_inds(b))
+
+        test_ind = ind(gen, "tₑₛₜ")
+
+        if a_has_occ && b_has_vir || a_has_vir && b_has_occ
+            for i in get_all_inds(a), j in get_all_inds(b)
+                if (isocc(i) && isvir(j) || isvir(i) && isocc(j)) && i.n == j.n
+                    a_test = cleanup_indices(exchange_index(a, i, test_ind))
+                    b_test = cleanup_indices(exchange_index(b, j, test_ind))
+
+                    if a_test == b_test
+                        return cleanup_indices(
+                            exchange_index(a, i, ind(gen, i.n))
+                        )
+                    end
+                end
+            end
+        end
+    end
+end
+
+function combine_occvir_terms(a::CompositeTerm{A}) where {A<:Number}
+    a
+end
+
+function combine_occvir_terms_single_pass(a::SumType{T}) where {T<:Number}
+    terms = copy(a.terms)
+
+    for i in eachindex(terms), j in i+1:length(terms)
+        comb = combine_occvir_terms(terms[i], terms[j])
+        if !isnothing(comb)
+            deleteat!(terms, j)
+            deleteat!(terms, i)
+            return (true, comb + sum(terms))
+        end
+    end
+
+    (false, a)
+end
+
+combine_occvir_terms_single_pass(a::CompositeTerm{T}) where {T<:Number} =
+    (false, a)
+
+function combine_occvir_terms(a::SumType{T}) where {T<:Number}
+    keep_going, comb = combine_occvir_terms_single_pass(a)
+    while keep_going
+        keep_going, comb = combine_occvir_terms_single_pass(comb)
+    end
+    comb
+end
