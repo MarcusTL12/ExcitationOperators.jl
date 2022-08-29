@@ -14,13 +14,13 @@ function summation(t::CompositeTerm{A}, sum_ind::MOIndex) where {A<:Number}
 
         new_ind_n = old_ind.n
 
-        if old_ind.o == gen
-            if sum_ind.o == occ
-                new_ind_n = new_ind_n * "ᵒ"
-            elseif sum_ind.o == vir
-                new_ind_n = new_ind_n * "ᵛ"
-            end
-        end
+        # if old_ind.o == gen
+        #     if sum_ind.o == occ
+        #         new_ind_n = new_ind_n
+        #     elseif sum_ind.o == vir
+        #         new_ind_n = new_ind_n
+        #     end
+        # end
 
         new_ind_o = old_ind.o
 
