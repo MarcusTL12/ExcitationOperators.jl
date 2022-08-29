@@ -11,11 +11,22 @@ ind(o, name) = MOIndex(o, name)
 
 Base.isless(p::MOIndex, q::MOIndex) = (p.o, p.n) < (q.o, q.n)
 
+#
+
+function Base.show(io::IO, i::MOIndex)
+    if isvir(i)
+        print(io, "\x1b[36m")
+    elseif isocc(i)
+        print(io, "\x1b[92m")
+    end
+    print(io, i.n, "\x1b[39m")
+end
+
 # Utility method for promoting general index to occupied or virtual index
 
 function make_occ(i::MOIndex)
     if i.o == gen
-        ind(occ, i.n * "ᵒ")
+        ind(occ, i.n)
     else
         i
     end
@@ -23,7 +34,7 @@ end
 
 function make_vir(i::MOIndex)
     if i.o == gen
-        ind(vir, i.n * "ᵛ")
+        ind(vir, i.n)
     else
         i
     end

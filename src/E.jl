@@ -6,7 +6,7 @@ struct ExcitationOperator
 end
 
 function Base.show(io::IO, e::ExcitationOperator)
-    print(io, "E_", e.p.n, e.q.n)
+    print(io, "E_", e.p, e.q)
 end
 
 Base.adjoint(e::ExcitationOperator) = ExcitationOperator(e.q, e.p)

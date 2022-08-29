@@ -102,7 +102,7 @@ function Base.show(io::IO, t::CompositeTerm{T}) where {T<:Number}
         printsep()
         print(io, "∑_")
         for i in t.sum_inds
-            print(io, i.n)
+            print(io, i)
         end
         print(io, '(')
         sep[] = false

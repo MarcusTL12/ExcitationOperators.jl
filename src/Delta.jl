@@ -15,7 +15,7 @@ struct KroeneckerDelta
 end
 
 function Base.show(io::IO, δ::KroeneckerDelta)
-    print(io, "δ_", δ.p.n, δ.q.n)
+    print(io, "δ_", δ.p, δ.q)
 end
 
 Base.isless(a::KroeneckerDelta, b::KroeneckerDelta) = (a.p, a.q) < (b.p, b.q)

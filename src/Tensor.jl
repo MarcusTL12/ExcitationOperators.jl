@@ -17,7 +17,7 @@ exchange_index(::T, from::MOIndex, to::MOIndex) where {T<:Tensor} =
 function Base.show(io::IO, t::T) where {T<:Tensor}
     print(io, get_symbol(t), '_')
     for ind in get_indices(t)
-        print(io, ind.n)
+        print(io, ind)
     end
 end
 
