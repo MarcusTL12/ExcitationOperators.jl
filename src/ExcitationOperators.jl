@@ -14,6 +14,7 @@ include("Summation.jl")
 include("ExpectationValuie.jl")
 include("Simplification.jl")
 include("latex_print.jl")
+include("Permuation.jl")
 
 include("BasicStuff.jl")
 

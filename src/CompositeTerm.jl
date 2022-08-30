@@ -62,6 +62,16 @@ function CompositeTerm(
     )
 end
 
+function Base.hash(t::CompositeTerm{T}) where {T<:Number}
+    h = hash(t.scalar)
+    h = hash(h * hash(collect(t.sum_inds)))
+    h = hash(h * hash(collect(t.deltas)))
+    h = hash(h * hash(collect(t.tensors)))
+    h = hash(h * hash(t.operators))
+
+    h
+end
+
 function Base.:(==)(a::CompositeTerm{A}, b::CompositeTerm{B}) where
 {A<:Number,B<:Number}
     (a.sum_inds, a.scalar, a.deltas, a.tensors, a.operators) ==
