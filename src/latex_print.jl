@@ -73,7 +73,10 @@ function printlatex(io::IO, t::CompositeTerm{T}, color=false) where {T<:Number}
     if !isempty(t.sum_inds)
         printsep()
         print(io, "\\sum_{")
-        for i in t.sum_inds
+        inds = collect(t.sum_inds)
+        printlatex(io, first(inds), color)
+        for i in inds[2:end]
+            print(io, ' ')
             printlatex(io, i, color)
         end
         print(io, "}{")
@@ -104,10 +107,10 @@ function printlatex(io::IO, s::SumType{T}, color=false) where {T<:Number}
     printlatex(io, first(s.terms), color)
     for t in s.terms[2:end]
         if t.scalar < zero(T)
-            print(io, " - ")
+            print(io, "\n- ")
             printlatex(io, -t, color)
         else
-            print(io, " + ")
+            print(io, "\n+ ")
             printlatex(io, t, color)
         end
     end
