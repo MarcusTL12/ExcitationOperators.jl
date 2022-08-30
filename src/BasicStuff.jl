@@ -27,7 +27,7 @@ export ht, gt, h, g, H
 
 # Tensors
 ht(p, q) = sym_tensor("h", p, q)
-gt(p, q, r, s) = sym_tensor("g", p, q, r, s)
+gt(p, q, r, s) = psym_tensor("g", p, q, r, s)
 
 # Operators
 h = summation(ht(p, q) * E(p, q), [p, q])
