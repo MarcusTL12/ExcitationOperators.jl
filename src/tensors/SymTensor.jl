@@ -20,8 +20,7 @@ get_symbol(t::T) where {T<:SymTensor2} = t.symbol
 get_indices(t::SymTensor2) = [t.p, t.q]
 Base.adjoint(t::T) where {T<:SymTensor2} = t
 
-function exchange_index(t::T, i::Int, ind::MOIndex) where
-{T<:SymTensor2}
+function exchange_index(t::SymTensor2, i::Int, ind::MOIndex)
     indices = get_indices(t)
     indices[i] = ind
     T(t.symbol, indices...)
