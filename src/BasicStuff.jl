@@ -23,13 +23,15 @@ module StandardOperators
 using ExcitationOperators
 using ..StandardIndices
 
-export hpq, gpqrs, h, g, H
+export ht, gt, h, g, H
 
-hpq = real_tensor("h", p, q)
-gpqrs = sym_tensor("g", p, q, r, s)
+# Tensors
+ht(p, q) = sym_tensor("h", p, q)
+gt(p, q, r, s) = sym_tensor("g", p, q, r, s)
 
-h = summation(hpq * E(p, q), [p, q])
-g = summation(1//2 * gpqrs * e(p,q,r,s), [p,q,r,s])
+# Operators
+h = summation(ht(p, q) * E(p, q), [p, q])
+g = summation(1 // 2 * gt(p, q, r, s) * e(p, q, r, s), [p, q, r, s])
 
 H = h + g
 
