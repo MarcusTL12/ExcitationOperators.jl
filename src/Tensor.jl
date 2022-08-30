@@ -50,3 +50,4 @@ end
 include("tensors/RealTensor.jl")
 include("tensors/SymTensor.jl")
 include("tensors/PSymTensor.jl")
+include("tensors/CCAmpTensor.jl")
