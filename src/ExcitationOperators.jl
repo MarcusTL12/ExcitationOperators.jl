@@ -13,6 +13,7 @@ include("Commutator.jl")
 include("Summation.jl")
 include("ExpectationValuie.jl")
 include("Simplification.jl")
+include("latex_print.jl")
 
 include("BasicStuff.jl")
 

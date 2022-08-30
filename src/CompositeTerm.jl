@@ -74,6 +74,18 @@ function Base.isless(a::CompositeTerm{A}, b::CompositeTerm{B}) where
     (collect(b.sum_inds), collect(b.deltas), b.tensors, b.operators, -b.scalar)
 end
 
+function printscalar(io::IO, s::T) where {T<:Number}
+    print(io, s)
+end
+
+function printscalar(io::IO, s::Rational{T}) where {T}
+    if isone(denominator(s))
+        print(io, numerator(s))
+    else
+        print(io, numerator(s), "/", denominator(s))
+    end
+end
+
 function Base.show(io::IO, t::CompositeTerm{T}) where {T<:Number}
     sep = Ref(false)
 
@@ -92,7 +104,7 @@ function Base.show(io::IO, t::CompositeTerm{T}) where {T<:Number}
             print(io, '-')
         else
             printsep()
-            print(io, t.scalar)
+            printscalar(io, t.scalar)
         end
     elseif all_nonscalar_empty
         print(io, t.scalar)
