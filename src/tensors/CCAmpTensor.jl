@@ -18,7 +18,7 @@ Base.adjoint(t::CCAmpTensor) = t
 function exchange_index(t::CCAmpTensor, i::Int, ind::MOIndex)
     indices = copy(t.inner.indices)
     indices[i] = ind
-    CCAmpTensor(t.symbol, indices)
+    CCAmpTensor(t.inner.symbol, indices)
 end
 
 function exchange_index(t::CCAmpTensor, from::MOIndex, to::MOIndex)
@@ -27,7 +27,7 @@ function exchange_index(t::CCAmpTensor, from::MOIndex, to::MOIndex)
     for i in is
         indices[i] = to
     end
-    CCAmpTensor(t.symbol, indices)
+    CCAmpTensor(t.inner.symbol, indices)
 end
 
 cc_amp_tensor(symbol, indices...) =
