@@ -23,7 +23,16 @@ Base.adjoint(t::T) where {T<:SymTensor2} = t
 function exchange_index(t::SymTensor2, i::Int, ind::MOIndex)
     indices = get_indices(t)
     indices[i] = ind
-    T(t.symbol, indices...)
+    SymTensor2(t.symbol, indices...)
+end
+
+function exchange_index(t::SymTensor2, from::MOIndex, to::MOIndex)
+    indices = get_indices(t)
+    is = findall(x -> x == from, indices)
+    for i in is
+        indices[i] = to
+    end
+    SymTensor2(t.symbol, indices...)
 end
 
 sym_tensor(symbol, p, q) =
