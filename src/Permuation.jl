@@ -39,7 +39,7 @@ function collapse_perm_first_term(
     lookup = Set(s.terms)
 
     first_term = first(s.terms)
-    expanded_term = expand_perm(first_term, perm_inds)
+    expanded_term = simplify(expand_perm(first_term, perm_inds))
     if expanded_term isa SumType &&
        length(expanded_term.terms) == factorial(length(perm_inds))
         if all(t ∈ lookup for t in expanded_term.terms)
