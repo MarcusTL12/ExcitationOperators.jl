@@ -131,20 +131,20 @@ rhf_h2o = pyscf.scf.RHF(mol_h2o);
 e_h2o = rhf_h2o.kernel();
 mycc = rhf_h2o.CCSD().run()
 
-no = mol_h2o.nelectron ÷ 2
-nv = size(Fmo, 1) - no
-
 t_vo = permutedims(mycc.t1, (2,1))
 t_vovo = permutedims(mycc.t2, (3,1,4,2));
+
+eri = mol_h2o.intor("int2e");
+eris = pyscf.ao2mo.kernel(eri, rhf_h2o.mo_coeff);
+eri_t1 = t1_transform_eri(eris, t_vo);
 
 h_ao = mol_h2o.intor_symmetric("int1e_kin") + mol_h2o.intor_symmetric("int1e_nuc");
 hmo = np.einsum("pi,pq,qj->ij", rhf_h2o.mo_coeff, h_ao, rhf_h2o.mo_coeff);
 ht1 = t1_transform(hmo, t_vo);
 Ft1 = t1_fock(t_vo, hmo, eris)
 
-eri = mol_h2o.intor("int2e");
-eris = pyscf.ao2mo.kernel(eri, rhf_h2o.mo_coeff);
-eri_t1 = t1_transform_eri(eris, t_vo);
+no = mol_h2o.nelectron ÷ 2
+nv = size(hmo, 1) - no
 
 ht1_oei = OEI_int(
     ht1[1:no,1:no],
