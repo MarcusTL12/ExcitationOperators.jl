@@ -64,5 +64,5 @@ function collapse_perm(
         acc += contracted
     end
 
-    acc
+    acc + rest
 end
