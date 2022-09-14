@@ -1,6 +1,7 @@
 export print_code
 
 function print_code(t :: CompositeTerm, symbol :: String, to :: String)
+    # Print python code for Composite Term. Only works for F, h, g integrals.
     scalar_str = float(t.scalar)
 
     # Make einsum_str
