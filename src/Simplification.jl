@@ -208,7 +208,7 @@ end
 
 function simplify(a::Union{CompositeTerm{A},SumType{A}}) where {A<:Number}
     a |> cleanup_indices |> split_summation |>
-    cleanup_indices |> combine_summation
+    cleanup_indices |> combine_summation |> sort_sum_sym_tensor
 end
 
 # Attempt at simplifying
