@@ -13,6 +13,8 @@ i2 = ind(occ, "i₂")
 b2 = ind(vir, "b₂")
 j2 = ind(occ, "j₂")
 
+o = ind(occ, "o")
+
 T2 = summation(1//2 * cc_amp_tensor("t", a1, i1, b1, j1) * E(a1, i1) * E(b1, j1), [a1, i1, b1, j1])
 T22 = summation(1//2 * cc_amp_tensor("t", a2, i2, b2, j2) * E(a2, i2) * E(b2, j2), [a2, i2, b2, j2])
 T2u = summation(1//2 * (2//3 * cc_amp_tensor("u", a1, i1, b1, j1) + 1//3 * cc_amp_tensor("u", a1, j1, b1, i1)) * E(a1, i1) * E(b1, j1), [a1, i1, b1, j1])
@@ -74,3 +76,16 @@ ucldj = 2//1 * psym_tensor("t", c, l, d, j) - psym_tensor("t", c, j, d, l)
 # Introduce Paibj back into the equations
 PΩ2 = collapse_perm(Ω2, [(a,i),(b,j)])
 @show PΩ2;
+
+# Code generation
+for t in ECCSD.terms
+    print_code(t, "E", "")
+end
+
+for t in Ω1.terms
+    print_code(t, "omega", "ai")
+end
+
+for t in Ω2.terms
+    print_code(t, "omega", "aibj")
+end
