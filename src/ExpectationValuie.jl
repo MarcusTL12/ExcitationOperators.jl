@@ -42,11 +42,9 @@ function exval(t::CompositeTerm{T}) where {T<:Number}
                     CompositeTerm(t.operators[i+1:end])
                 ))
             elseif first(t.operators).q.o == occ
-                exval(CompositeTerm(first(t.operators))) *
-                exval(nonop_part * CompositeTerm(t.operators[2:end]))
+                nonop_part * (exval(CompositeTerm(first(t.operators))) * exval(CompositeTerm(t.operators[2:end])))
             elseif last(t.operators).p.o == occ
-                exval(nonop_part * CompositeTerm(t.operators[1:end-1])) *
-                exval(CompositeTerm(last(t.operators)))
+                nonop_part * (exval(CompositeTerm(t.operators[1:end-1])) * exval(CompositeTerm(last(t.operators))))
             else
                 o = first(t.operators)
                 q_occ = make_occ(o.q)
@@ -54,8 +52,6 @@ function exval(t::CompositeTerm{T}) where {T<:Number}
 
                 t_occ = exchange_index(t, o.q, q_occ)
                 t_vir = exchange_index(t, o.q, q_vir)
-
-                # @show t_occ t_vir
 
                 exval(t_occ) + exval(t_vir)
             end
